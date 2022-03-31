@@ -8,6 +8,7 @@ dataset = 'CMT'
 path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACION/{dataset}'
 path_to_folder = f'../../../../Datasets/{dataset}'
 path_to_folder = rf'C:\Users\Luna\Desktop\Andres\Data\{dataset}'
+path_to_folder = f'../../../..{dataset}'
 
 CM2_obj = DATASETS(path_to_folder)
 CM2_obj.save()

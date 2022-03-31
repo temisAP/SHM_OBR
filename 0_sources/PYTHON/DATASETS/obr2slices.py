@@ -118,9 +118,9 @@ def gen_slices(self,obrfile,slices_obj,delta=300,window=1000):
     """ Checkout and initialization """
 
     # Conditions file checkout
-    if not os.path.isfile(conditions_file):
+    if not os.path.exists(conditions_file):
         print('\nNo conditions file found')
-        genCONDITIONStemplate(self)
+        self.genCONDITIONStemplate()
         return
 
     # Column names and slice initialization
@@ -128,7 +128,7 @@ def gen_slices(self,obrfile,slices_obj,delta=300,window=1000):
     column_names = [key for key in a_slice_obj.__dict__.keys()]
 
     # Check if book exists
-    if not os.path.isfile(book_path):
+    if not os.path.exists(book_path):
         df = pd.DataFrame(columns = column_names, dtype=object)
         df.to_csv(book_path,index=False)
 
