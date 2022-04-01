@@ -22,7 +22,7 @@ class the_dataset(Dataset):
         return self.x[idx,:], self.y[idx,:]
 
 
-def load_datasets(self,datasets=None,ds_percentages=[100],split = True, preprocessing=True, data_loaders = True, train_percentage=60,test_percentage=40,val_percentage=40,plot_preprocessing=False,plot_histogram=False):
+def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocessing=True, data_loaders = True, train_percentage=60,test_percentage=40,val_percentage=40,plot_preprocessing=False,plot_histogram=False):
     """ Function to load data from datasets
 
         :param: datasets(list of strings): path of datasets to load -> If None a GUI to select will be launched
@@ -46,7 +46,7 @@ def load_datasets(self,datasets=None,ds_percentages=[100],split = True, preproce
     if not isinstance(datasets, list):
         datasets = [datasets]
     if not isinstance(ds_percentages, list):
-        ds_percentages = [ds_percentages]
+        ds_percentages = np.ones(len(datasets))  * 100.0
 
     if len(self.X) != 0:
         ans = input('There are currently data storaged (append/overwrite/quit): ')
@@ -69,6 +69,7 @@ def load_datasets(self,datasets=None,ds_percentages=[100],split = True, preproce
 
     # Join all datasets in one
     for dataset,percentage in zip(datasets,ds_percentages):
+        print('\nLoading',dataset)
 
         # Load new data
         newX, newY = load_one_dataset(dataset)
@@ -150,7 +151,7 @@ def load_one_dataset(dataset):
             self.path   = path
             self.name   = name
             self.load()
-            print('\nDATASET found!')
+            print('\nDATASET loaded!')
 
         from .load import load
 

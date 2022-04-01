@@ -19,15 +19,15 @@ import numpy as np
 
 """ Path to data and REF """
 
-folder = 'Deformation'
-path_to_data = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACION/CMT/{folder}'
-files = ['ref','50g','200g']
+folder = 'CM2/0_OBR'
+path_to_data = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACION/{folder}'
+files = ['19_grados','30_grados','172_grados']
 
 """ Compute and plot ss """
 
 # Parameters
-REF = 'ref'
-limit1 = 3.5
+REF = '19_grados'
+limit1 = 0
 limit2 = 5.5
 delta = 300
 window = 1000
@@ -54,6 +54,7 @@ for spectralshift,file in zip(spectralshifts,files):
 
 plt.grid()
 
+"""
 # Read files
 
 folder = 'Temperature'
@@ -81,7 +82,7 @@ z = np.linspace(z[0],z[-1],len(spectralshift))
 # Plot
 for spectralshift,file in zip(spectralshifts,files):
     plt.plot(z,spectralshift,label=file)
-
+"""
 
 plt.legend()
 plt.show()

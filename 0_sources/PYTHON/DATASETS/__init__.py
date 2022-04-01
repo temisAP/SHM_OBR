@@ -88,10 +88,8 @@ class DATASETS(object):
         df = pd.DataFrame({
                 'limit1\n[m]'       : [0],
                 'limit2\n[m]'       : [-1],
-                'L\n[mm]'           : [0],
-                't\n[mm]'           : [0],
-                'E\n[GPa]'          : [0],
-                'I\n[mm⁴]'          : [0],
+                'L\n[mm]'           : [1],
+                't\n[mm]'           : [1],
                 'alpha\n[µm/(m·K)]' : [0]})
         df.to_csv(os.path.join(self.path,self.folders['4_INFORMATION'],name), index=False)
 
@@ -100,8 +98,6 @@ class DATASETS(object):
         info += 'limit2: \t stands for the last position to keep [m] \n'
         info += 'L: \t is the lenght of the beam where the fiber is attached in order to perform a flexural test on [mm] \n'
         info += 't: \t is the thickness of the beam [mm] \n'
-        info += 'E: \t is the elastic modulus of the beam [GPa] \n'
-        info += 'I: \t is the momentum of inertia of the beam [mm⁴] \n'
         info += 'alpha \t stands for CTE [µm/(m·K)]'
         with open(os.path.join(self.path,self.folders['4_INFORMATION'],name.replace('.csv','.txt')), 'w') as f:
             f.write(info)

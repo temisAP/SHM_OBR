@@ -134,8 +134,6 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
     conditions_df = pd.read_csv(conditions_file)
     L = float(conditions_df['L\n[mm]'][0])  * 1e-3               # mm to m
     t = float(conditions_df['t\n[mm]'][0])  * 1e-3               # mm to m
-    E = float(conditions_df['E\n[GPa]'][0]) * 1e+9               # GPa to Pa
-    I = float(conditions_df['I\n[mm⁴]'][0]) * (1e-3)**4          # mm⁴ to m⁴
     alpha = float(conditions_df['alpha\n[µm/(m·K)]'])            # already microdeformations
 
 

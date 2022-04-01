@@ -72,7 +72,7 @@ class splitter(nn.Module):
         self.C_ac = Compressor(Ls[2],int(Ls[2]/rhos[2]))
 
         # Regressor layers
-        input_size  = sum( [int(L/rho) for L,rho in zip(Ls,rhos)] )  - int(Ls[2]/rhos[2])
+        input_size  = sum( [int(L/rho) for L,rho in zip(Ls,rhos)] ) #- int(Ls[1]/rhos[1])
         self.R   = Regressor( input_size , 1)
 
     def forward(self, x):
@@ -96,9 +96,9 @@ class splitter(nn.Module):
         x3 = x[: , -Ls[2]      :            ].reshape(bs,-1)
         y1 = x1
         y2 = self.C_cc(x2)
-        #y3 = self.C_ac(x3)
+        y3 = self.C_ac(x3)
 
-        x = torch.cat((y1,y2), 1)
+        x = torch.cat((y1,y2,y3), 1)
 
         # Second_Stage_Layers
         out = self.R(x)
