@@ -203,7 +203,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
 
         # Avoid certain lenght (noise or whatever)
         if isinstance(avoid_segment[0], float) and isinstance(avoid_segment[1], float):
-            if avoid_segment[0] <= slices_book['z'] and slices_book['z'] <= avoid_segment[0]:
+            if avoid_segment[0] <= slices_book['x'] and slices_book['x'] <= avoid_segment[0]:
                 continue
 
         # Search in dataframe for other rows to consider as reference
@@ -251,12 +251,22 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
 
             # Information to book
 
-            new_row = {
-            'delta_T'   : delta_T,
-            'delta_EPS' : delta_EPS,
-            'parent1'   : parent1,
-            'parent2'   : parent2,
-            'spectralshift' : X[0] }
+            more_info = True
+            if more_info:
+                new_row = {
+                'delta_T'   : delta_T,
+                'delta_EPS' : delta_EPS,
+                'parent1'   : parent1,
+                'parent2'   : parent2,
+                'spectralshift' : X[0],
+                'x'         : row['x'],
+                'd_flecha'  : delta_flecha}
+            else:
+                new_row = {
+                'delta_T'   : delta_T,
+                'delta_EPS' : delta_EPS,
+                'parent1'   : parent1,
+                'parent2'   : parent2}
 
             new_information = new_information.append(new_row, ignore_index=True)
 

@@ -6,8 +6,14 @@ def load(self):
 
     path_to = os.path.join(self.path,self.name)
 
+    new_path = self.path
+    new_name = self.name
+
     with open(path_to, 'rb') as inp:
         self.__dict__ = pickle.load(inp)
+
+    self.path = new_path
+    self.name = new_name
 
     return self
 

@@ -54,7 +54,7 @@ class DATASETS(object):
             '2_SLICES'      : './2_SLICES',
             '3_DATASET'     : './3_DATASET',
             '4_INFORMATION' : './4_INFORMATION'}
-            
+
             for key,val in self.folders.items():
                 if not os.path.exists(os.path.join(self.path,val)):
                     os.makedirs(os.path.join(self.path,val))
@@ -86,12 +86,13 @@ class DATASETS(object):
 
         # Create template and save it
         df = pd.DataFrame({
-                'limit1\n[m]': [0],
-                'limit2\n[m]': [-1],
-                'L\n[mm]'    : [0],
-                't\n[mm]'    : [0],
-                'E\n[GPa]'   : [0],
-                'I\n[mm⁴]'   : [0]})
+                'limit1\n[m]'       : [0],
+                'limit2\n[m]'       : [-1],
+                'L\n[mm]'           : [0],
+                't\n[mm]'           : [0],
+                'E\n[GPa]'          : [0],
+                'I\n[mm⁴]'          : [0],
+                'alpha\n[µm/(m·K)]' : [0]})
         df.to_csv(os.path.join(self.path,self.folders['4_INFORMATION'],name), index=False)
 
         # Create a .txt to explain
@@ -116,7 +117,7 @@ class DATASETS(object):
         self.save()
 
 
-    from .obr import obr, computeOBR, genOBRbook
+    from .obr import obr, computeOBR, genOBRbook, obr_ss
 
     from .obr2slices import obr2slices, gen_slices, genSLICESbook
 
@@ -124,4 +125,4 @@ class DATASETS(object):
 
     from .save import save
 
-    from .load import load, load_slices
+    from .load import load, load_slices, load_dataset

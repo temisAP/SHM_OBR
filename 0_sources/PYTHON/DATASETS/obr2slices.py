@@ -121,7 +121,7 @@ def gen_slices(self,obrfile,slices_obj,delta=300,window=1000):
     if not os.path.exists(conditions_file):
         print('\nNo conditions file found')
         self.genCONDITIONStemplate()
-        return
+        exit()
 
     # Column names and slice initialization
     a_slice_obj = a_slice()

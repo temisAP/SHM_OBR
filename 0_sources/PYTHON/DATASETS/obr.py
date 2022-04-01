@@ -5,6 +5,11 @@ import glob
 import re
 import sys
 import time
+import matplotlib.pyplot as plt
+
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../SPECTRAL_SHIFT'))
+from SPECTRAL_SHIFT.Spectral_Shift import global_spectral_shift
 
 class obrfile(object):
     def __init__(obrfile_obj,filename,temperature,flecha,date):
@@ -110,7 +115,7 @@ def computeOBR(self):
     for key, obrfile in self.obrfiles.items():
 
         import psutil
-        if psutil.virtual_memory()[2] < 90:        
+        if psutil.virtual_memory()[2] < 90:
 
             if not hasattr(obrfile, 'Data'):
                 # Read .obr file
@@ -121,13 +126,35 @@ def computeOBR(self):
                 obrfile.Data        = Data[obrfile.name]
             else:
                 pass
-            
+
         else:
             print('Unable to allocate more information')
             print("DON'T PANIC the information will be saved")
             print('just run again DATASETS.computeOBR() until no more .obr files are read')
             self.save()
             exit()
+
+def obr_ss(self,REF):
+    """ Plots spectral shift from obr files """
+
+    files = list(self.obrfiles.keys())
+    files.remove(REF)
+    f = np.linspace(self.obrfiles[REF].f[0],self.obrfiles[REF].f[-1],3)
+
+    plt.figure()
+
+    for file in files:
+        y1 = self.obrfiles[REF].Data[0]
+        y2 = self.obrfiles[file].Data[0]
+
+        spectralshift = global_spectral_shift(y1,y2,f,delta=200,window=200,display = False)
+
+        plt.plot(spectralshift,label=file)
+
+    plt.grid()
+    plt.legend()
+    plt.show()
+
 
 
 def find_OBR(path):

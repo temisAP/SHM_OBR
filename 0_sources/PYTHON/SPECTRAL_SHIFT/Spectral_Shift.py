@@ -76,11 +76,11 @@ def local_spectral_shift(y1,y2,f,display=False):
 
         plt.show()
 
+    return spectralshift
+    #return -1*spectralshift/np.mean(f)
 
-    return -1*spectralshift/np.mean(f)
 
-
-def global_spectral_shift(y1,y2,f,delta=20,window=250,display = False):
+def global_spectral_shift(y1,y2,f,delta=200,window=1000,display = False):
     """ Computes relative spectral shift (spectralshift) between two signals in a given window
         :param y1       (np.array)  : first signal
         :param y2       (np.array)  : second signal
