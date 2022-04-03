@@ -6,11 +6,6 @@ def results(self):
 
     e_T = np.zeros(len(self.X['test']))
     e_E = np.zeros(len(self.Y['test']))
-    
-    T_predict = list()
-    T_target = list()
-    E_predict = list()
-    E_target = list()
 
     with torch.no_grad():
         self.model_T.eval()
@@ -29,11 +24,6 @@ def results(self):
             # Error
             e_T[i] = self.scaler_T.inverse_transform(T) - self.scaler_T.inverse_transform(y[0])
             e_E[i] = self.scaler_E.inverse_transform(E) - self.scaler_T.inverse_transform(y[1])
-            # Confusion
-            T_predict.append(T)
-            T_target.append(y[0])
-            E_predict.append(E)
-            E_target.append(y[1])
 
     plt.figure()
     plt.title(f'Error absoluto medio Temperatura: {sum(abs(e_T))/len(e_T):.4f} K')
@@ -46,19 +36,5 @@ def results(self):
     plt.grid()
     plt.hist(e_E,bins=20)
     print(f'Error absoluto medio Deformación: {sum(abs(e_E))/len(e_E):.4f} micro')
-    
-    plt.figure()
-    plt.title('Confusion matrix: Temperatura')
-    plt.plot(T_target,T_predict)
-    plt.xlabel('Target')
-    plt.ylabel('Prediction')
-    
-    plt.figure()
-    plt.title('Confusion matrix: Deformacion')
-    plt.plot(E_target,E_predict)
-    plt.xlabel('Target')
-    plt.ylabel('Prediction')
 
     plt.show()
-
-    
