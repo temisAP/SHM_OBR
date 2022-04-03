@@ -5,7 +5,7 @@ import time
 from .model import splitter
 import numpy as np
 
-def fit_data(self,num_epochs = 25,lr=1e-7, representation = True, criterion  = nn.MSELoss()):
+def fit_data(self,num_epochs = 25, lr=1e-7, representation = True, criterion  = nn.MSELoss()):
 
     print("\nFitting data\n")
 
@@ -56,7 +56,7 @@ def fit_data(self,num_epochs = 25,lr=1e-7, representation = True, criterion  = n
             loss_T = criterion(T, y[:,0].view(-1,1))
             loss_E = criterion(E, y[:,1].view(-1,1))
             loss_T_sum += loss_T/len(y[:,0])
-            loss_E_sum += loss_E/len(y[:,0])/len(y[:,0])
+            loss_E_sum += loss_E/len(y[:,1])
             # Backward
             loss_T.backward()
             loss_E.backward()
@@ -84,7 +84,7 @@ def fit_data(self,num_epochs = 25,lr=1e-7, representation = True, criterion  = n
                     val_loss_T = criterion(T, y[:,0].view(-1,1))
                     val_loss_E = criterion(E, y[:,1].view(-1,1))
                     val_loss_T_sum += val_loss_T/len(y[:,0])
-                    val_loss_E_sum += val_loss_E/len(y[:,0])
+                    val_loss_E_sum += val_loss_E/len(y[:,1])
 
                     # Mean Square Error
                     T_sum += torch.sum( torch.abs( T.to('cpu') - y[:,0].to('cpu') ) )

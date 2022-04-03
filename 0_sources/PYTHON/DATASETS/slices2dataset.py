@@ -107,6 +107,32 @@ def layer0(data,ref_data,f,lamb=25, mode='same'):
 
     return X
 
+def layer00(data,ref_data,f):
+
+    P1 = data[0]
+    S1 = data[1]
+    P2 = ref_data[0]
+    S2 = ref_data[1]
+
+    P1 = np.absolute(np.fft.fft(P1))
+    P2 = np.absolute(np.fft.fft(P2))
+    P1 = (P1 - np.mean(P1)) / (np.std(P1) * len(P1))
+    P2 = (P2 - np.mean(P2)) / (np.std(P2))
+
+    S1 = np.absolute(np.fft.fft(S1))
+    S2 = np.absolute(np.fft.fft(S2))
+    S1 = (S1 - np.mean(S1)) / (np.std(S1) * len(S1))
+    S2 = (S2 - np.mean(S2)) / (np.std(S2))
+
+    t = [P1.real, P1.imag,
+        S1.real, S1.imag,
+        P2.real, P2.imag,
+        S2.real, S2.imag]
+
+    X = np.array([item for sublist in t for item in sublist])
+
+    return X
+
 def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None]):
     """ Function to load all slices (previously generated), compute them in pairs, and
     genenerate new values for a dataset
@@ -229,7 +255,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
             ref_data[0] = slices_obj.slices[ref_row['ID']].P
             ref_data[1] = slices_obj.slices[ref_row['ID']].S
 
-            X = layer0(data,ref_data,f)
+            X = layer00(data,ref_data,f)
             dataset_obj.X.append(X)
 
             delta_T         = row['temperature']-ref_row['temperature']     # K

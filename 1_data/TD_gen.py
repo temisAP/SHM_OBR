@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../0_sources/PYTHON'))
 from DATASETS import DATASETS
 
-dataset = 'CM2'
+dataset = 'CT2'
 path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACION/{dataset}'
 #path_to_folder = f'../../../../Datasets/{dataset}'
 #path_to_folder = rf'C:\Users\Luna\Desktop\Andres\Data\{dataset}'
@@ -27,7 +27,7 @@ CM2_obj = DATASETS(path_to_folder)
 # slices = CM2_obj.load_slices()
 
 
-CM2_obj.slices2dataset(matches=70,percentage=100,avoid_segment=[None, None])
+CM2_obj.slices2dataset(matches=7,percentage=10,avoid_segment=[None, None])
 CM2_obj.save()
 
 #dataset = CM2_obj.load_dataset()
