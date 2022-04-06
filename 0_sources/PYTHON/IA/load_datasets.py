@@ -22,7 +22,7 @@ class the_dataset(Dataset):
         return self.x[idx,:], self.y[idx,:]
 
 
-def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocessing=True, data_loaders = True, train_percentage=60,test_percentage=40,val_percentage=40,plot_preprocessing=False,plot_histogram=False):
+def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocessing=True, data_loaders = True, test_percentage=20,val_percentage=20, plot_preprocessing=False,plot_histogram=False):
     """ Function to load data from datasets
 
         :param: datasets(list of strings): path of datasets to load -> If None a GUI to select will be launched
@@ -85,6 +85,11 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
     """ Train test split """
 
     if split:
+
+        # Validation percentage after splitting train and test
+        train_val_percentage    = 100 - test_percentage
+        val_percentage          = val_percentage/train_val_percentage
+        train_percentage        = train_percentage/train_val_percentage
 
         # Split datasets in train test and validation
         if val_percentage != 0:
