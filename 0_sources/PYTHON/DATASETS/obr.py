@@ -7,11 +7,15 @@ import sys
 import time
 import matplotlib.pyplot as plt
 
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '../SPECTRAL_SHIFT'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../__file__'))
+from utils import find_index
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from SPECTRAL_SHIFT.read_obr import multi_read_obr
 from SPECTRAL_SHIFT.Spectral_Shift import global_spectral_shift
 
 class obrfile(object):
+    """ Container class of obr files """
+
     def __init__(obrfile_obj,filename,temperature,flecha,date):
 
         obrfile_obj.filename       = filename
@@ -21,10 +25,21 @@ class obrfile(object):
         obrfile_obj.date           = date
 
 def obr(self):
+
+    # First generates obr book from obr filenames and the date recorded in each .obr
     self.genOBRbook()
+    # Then open each one and reads relevant information in the specified segment
     self.computeOBR()
 
 def genOBRbook(self):
+    """
+    Function to generate obr book from obr filenames and the date recorded in each .obr
+
+        returns: dataframe from obr book file
+
+    """
+
+    # Check current information
 
     book_path = os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['obr book filename'])
 
@@ -44,7 +59,7 @@ def genOBRbook(self):
         print('')
         print('OBR book found and registered')
         if 'n' in input('Do you want to overwrite?(yes/no)'):
-            return
+            return pd.read_csv(book_path)
         else:
             save_df  = True
             save_obj = True
@@ -83,13 +98,18 @@ def genOBRbook(self):
         return df
     else:
         print('Done!')
-        return
+        return df
 
 def computeOBR(self):
-    """ Reads all .obr files and registers information: f,z and Data = [Pc,Sc,Hc] """
+    """
+    Reads all .obr files and registers information: f,z and Data = [Pc,Sc,Hc]
+    among currently existing (filename, name, flecha, temperature and date)
 
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    from SPECTRAL_SHIFT.read_obr import multi_read_obr
+    * If RAM is not able to allocate enough memory the object will be saved and
+    by running this function a couple of times all the information will be
+    sotoraged correctly
+
+    """
 
     # Check if information files exists
     if not os.path.exists(os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['obr book filename'])) and len(self.obrfiles) == 0:
@@ -99,6 +119,7 @@ def computeOBR(self):
         return
     else:
         pass
+
     if not os.path.exists(os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['conditions filename'])):
         print('\n','No conditions found')
         print('Please if you want to crop the data or specify the beam where the fiber was glued run:')
@@ -106,12 +127,14 @@ def computeOBR(self):
         print('and edit it')
         return
     else:
+        # Gets limits from conditions file
         df = pd.read_csv(os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['conditions filename']))
 
         limit1 = float(df['limit1\n[m]'][0])
         limit2 = float(df['limit2\n[m]'][0])
 
     # Generate datasets from selected data
+
     for key, obrfile in self.obrfiles.items():
 
         import psutil
@@ -128,40 +151,126 @@ def computeOBR(self):
                 pass
 
         else:
-            print('Unable to allocate more information')
+            print('\nUnable to allocate more information')
             print("DON'T PANIC the information will be saved")
             print('just run again DATASETS.computeOBR() until no more .obr files are read')
             self.save()
+            return False
             exit()
 
-def obr_ss(self,REF):
-    """ Plots spectral shift from obr files """
+    return True
+
+def obr_ss(self,REF,type=None,eps=False):
+    """
+    Plots spectral shift from obr files
+
+        param: REF (str): file which take as reference
+
+        optional: type = None (str):  if 'flecha' plots a colorbar and sorts lines by its deflection
+                                      if 'temperature' plots a colorbar and sorts lines by its temperature
+
+        optional: eps = False (bool): if True then adds the deformation along the segment in the plot
+
+
+    """
+
+    """ Conditions checkout """
+
+    # Conditions file checkout
+    conditions_file     = os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['conditions filename'])
+    if not os.path.isfile(conditions_file):
+        print('\nNo conditions file found')
+        self.genCONDITIONStemplate()
+        return
+
+    conditions_df = pd.read_csv(conditions_file)
+    L = float(conditions_df['L\n[mm]'][0])  * 1e-3               # mm to m
+    t = float(conditions_df['t\n[mm]'][0])  * 1e-3               # mm to m
+    alpha = float(conditions_df['alpha\n[µm/(m·K)]'])            # already microdeformations
+
+    """ Get filenames to iterate """
 
     files = list(self.obrfiles.keys())
+    Ts = list()
     files.remove(REF)
     f = np.linspace(self.obrfiles[REF].f[0],self.obrfiles[REF].f[-1],3)
 
-    plt.figure()
+
+    """ Get labels """
 
     for file in files:
-        y1 = self.obrfiles[REF].Data[0]
-        y2 = self.obrfiles[file].Data[0]
+        if hasattr(self.obrfiles[file], 'Data'):
 
-        spectralshift = global_spectral_shift(y1,y2,f,delta=200,window=200,display = False)
+            if type == 'temperature':
+                Ts.append(self.obrfiles[file].temperature-self.obrfiles[REF].temperature)
+            elif type == 'flecha':
+                Ts.append(self.obrfiles[file].flecha-self.obrfiles[REF].flecha)
 
-        plt.plot(spectralshift,label=file)
+    """ Get spectral shift from each file and plots it """
 
-    plt.grid()
-    plt.legend()
+    fig, ax = plt.subplots()
+
+    if eps:
+        ax2 = ax.twinx()
+        ax2.set_ylabel(r'$\Delta \mu\varepsilon$'+'\n'+'(dashed)').set_rotation(0)
+
+    for file in files:
+        if hasattr(self.obrfiles[file], 'Data'):
+
+            y1 = self.obrfiles[REF].Data[0]
+            y2 = self.obrfiles[file].Data[0]
+            z = self.obrfiles[file].z
+
+            if type == 'temperature':
+                T = int(self.obrfiles[file].temperature-self.obrfiles[REF].temperature)
+            elif type == 'flecha':
+                T = int(self.obrfiles[file].flecha-self.obrfiles[REF].flecha)
+
+            spectralshift = global_spectral_shift(y1,y2,f,delta=2000,window=1000,display = False)
+            z = np.linspace(z[0],z[-1],len(spectralshift))
+
+            # Add real deformation to graph
+            if eps:
+                # Get status of the beam
+                delta_flecha = (self.obrfiles[file].flecha-self.obrfiles[REF].flecha) * 1e-3             # mm to m
+                delta_T      = (self.obrfiles[file].temperature-self.obrfiles[REF].temperature)          # K
+                # Relative position on the beam
+                x = np.linspace(0,L,len(z))     # in m
+
+                eps_mec = 3*delta_flecha*t/(2*L**3) * (x-L) * 1e6               # Mechanical microdeformations
+                eps_the = alpha * delta_T * np.ones_like(x)                     # Thermal  microdeformations
+                delta_EPS = eps_mec + eps_the                                   # Total microdeformations
+
+                ax2.plot(z,delta_EPS,'--',label=file,color=plt.cm.jet(find_index(Ts,T)/len(Ts)))
+
+            if type == None:
+                ax.plot(z,spectralshift,label=file)
+            else:
+                ax.plot(z,spectralshift,label=file,color=plt.cm.jet(find_index(Ts,T)/len(Ts)))
+
+    # Legend or colorbar
+    if type == None:
+        ax.legend(bbox_to_anchor=(1.04,0.5), loc="center left", borderaxespad=0)
+    else:
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=min(Ts), vmax=max(Ts)))
+        cbar = plt.colorbar(sm,ax=ax,spacing='proportional')
+        if type == 'temperature':
+            cbar.set_label(r'$\Delta T$ [K]',rotation=0,labelpad=15)
+        elif type == 'flecha':
+            cbar.set_label(r'$\delta$ [mm]',rotation=0,labelpad=15)
+
+
+    ax.set_xlabel('z [m]')
+    ax.set_ylabel(r'$\frac{-\Delta \nu}{\bar{\nu}}$',fontsize=16).set_rotation(0)
+    ax.grid()
+    ax2.grid() if eps else False
     plt.show()
-
-
 
 def find_OBR(path):
     """ Function to find all .obr files from a folder
 
-        param: path (string): path to folder
-        return: obr_files (list of string): list of OBR filenames
+        param:  path      (string)          : path to folder
+        return: obr_files (list of string)  : list of OBR filenames
 
     """
     # Find all .obr files
@@ -171,7 +280,8 @@ def find_OBR(path):
     return obr_files
 
 def sort_OBR(obr_files):
-    """ Funtion to sort OBR by the first number (before '_' splitter)
+    """
+    Funtion to sort OBR by the first number (before '_' splitter)
 
         param: obr_files (list of string) : list of OBR filenames
         return: obr_files (list of string) : list of OBR filenames sorted
@@ -182,7 +292,8 @@ def sort_OBR(obr_files):
 
 def get_status(filename):
 
-    """ Checks filename format, then extracts temperature and delfection from the name
+    """
+    Checks filename format, then extracts temperature and delfection from the name
 
         Valid formats are:
                 [temperature]_grados.obr               -> For just-temperature samples
@@ -215,7 +326,14 @@ def get_status(filename):
     return temperature, flecha
 
 def get_date(file):
-    """ Open an .obr file to get date of the measure """
+    """
+    Open an .obr file to get date of the measure
+
+        param: file (str): file to be read
+        return: DateTime (str): date formated as %Y,%M,%D,%h:%m:%s
+
+    """
+
     # Lectura de datos
     offset = np.dtype('<f').itemsize
     offset += np.dtype('|U8').itemsize
@@ -232,6 +350,7 @@ def get_date(file):
     offset += np.dtype('uint32').itemsize
 
     DateTime=np.fromfile(file, count=8,dtype= 'uint16',offset = offset)                              # Fecha de la medida
+
     DateTime=f'{DateTime[0]},{DateTime[1]},{DateTime[3]},{DateTime[4]}:{DateTime[5]}:{DateTime[6]}'  # "2022,03,03,13:41:27"
 
     return DateTime

@@ -3,14 +3,17 @@ import pandas as pd
 import sys
 import os
 from .obr2slices import slices
+from .zero_layers import layer0 as layer0
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../0_sources/PYTHON'))
 from utils import printProgressBar
 
 import numpy as np
-import statsmodels.api as sm
+
 
 class dataset(object):
+    """ Class to contain the dataset which will be used to train deep learning models """
+
     def __init__(self,path,name):
 
         self.path   = path
@@ -36,109 +39,16 @@ class dataset(object):
     from .save import save
     from .load import load
 
-def layer0(data,ref_data,f,lamb=25, mode='same'):
-    """ Zero 'layer' for a IA model, it takes signal data and its reference
-    and computes autocorrelation comparisson and cross correlation
 
-        param: data (2xn np.array)      : array which contains the signal data
-        param: ref_data (2xn np.array)  : array which contains the reference signal data
-        param: f (1D np.array)          : frequency sampling array
-
-            *Both data and ref_data are compound with the same structure:
-                    data = [[P],[S]]
-
-        optional: lamb=25       : lambda parameter for the STL filter performed over
-                                  autocorrelation comparisson
-        optional: mode='same'   : mode for np.correlate function
-
-        returns: X (1D np.array): array which contains cross and auto autocorrelation
-                                  information: [[spectralshift],crosscorr,autocorr]
-
-    """
-
-    P1 = data[0]
-    S1 = data[1]
-    P2 = ref_data[0]
-    S2 = ref_data[1]
-
-    """ Autocorrelation """
-
-    # Autocorrelation
-    y = P1
-    autocorr1 = np.correlate(y, y, mode=mode)/np.var(y)/len(y)
-    y = P2
-    autocorr2 = np.correlate(y, y, mode=mode)/np.var(y)/len(y)
-    autocorr = np.absolute(autocorr1-autocorr2)
-
-    # STL filter
-    seasonal,trend = np.array(sm.tsa.filters.hpfilter(autocorr, lamb=25))
-    autocorr = trend
-
-    autocorr = autocorr[int(len(autocorr)/2-200):int(len(autocorr)/2+200)]
-
-    """ Cross correlation """
-
-    y1 = P1
-    y2 = P2
-
-    # Frequency sampling
-    DF = f[-1]-f[0]     # Frequency increment
-    n = len(y1)         # Sample lenght
-    sr = 1/(DF/n)       # Scan ratio
-
-    # FFT
-    Y1 = np.absolute(np.fft.fft(y1))
-    Y2 = np.absolute(np.fft.fft(y2))
-    Y1 = (Y1 - np.mean(Y1)) / (np.std(Y1) * len(Y1))
-    Y2 = (Y2 - np.mean(Y2)) / (np.std(Y2))
-
-    # Cross corelation
-    crosscorr = np.correlate(Y1, Y2, mode=mode)
-
-    # Spectral shift
-    spectralshift_lags = np.linspace(-0.5*n/sr, 0.5*n/sr, n+1)
-    spectralshift = spectralshift_lags[np.argmax(crosscorr)]
-    spectralshift = -1*spectralshift/np.mean(f)*1e6             # micro spectralshift
-
-    """ Return """
-
-    t = [[spectralshift],crosscorr,autocorr]
-    X = np.array([item for sublist in t for item in sublist])
-
-    return X
-
-def layer00(data,ref_data,f):
-
-    P1 = data[0]
-    S1 = data[1]
-    P2 = ref_data[0]
-    S2 = ref_data[1]
-
-    P1 = np.absolute(np.fft.fft(P1))
-    P2 = np.absolute(np.fft.fft(P2))
-    P1 = (P1 - np.mean(P1)) / (np.std(P1) * len(P1))
-    P2 = (P2 - np.mean(P2)) / (np.std(P2))
-
-    S1 = np.absolute(np.fft.fft(S1))
-    S2 = np.absolute(np.fft.fft(S2))
-    S1 = (S1 - np.mean(S1)) / (np.std(S1) * len(S1))
-    S2 = (S2 - np.mean(S2)) / (np.std(S2))
-
-    t = [P1.real, P1.imag,
-        S1.real, S1.imag,
-        P2.real, P2.imag,
-        S2.real, S2.imag]
-
-    X = np.array([item for sublist in t for item in sublist])
-
-    return X
-
-def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None]):
+def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],conserve_segment=[None,None],more_info=True):
     """ Function to load all slices (previously generated), compute them in pairs, and
     genenerate new values for a dataset
 
         optional: matches (float)                   : percentage of reference segments to consider from total
         optional: avoid segement (list of floats)   : interval to avoid, in meters [INI, FIN]
+
+        returns: dataset_obj (dataset object)       : object which contains all the dataset information
+
     """
 
     # Paths
@@ -147,7 +57,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
     dataset_path        = os.path.join(self.path,self.folders['3_DATASET'],self.INFO['dataset filename'])
     slices_book_path    = os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['slices book filename'])
     dataset_book_path   = os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['dataset book filename'])
-    conditions_file =   os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['conditions filename'])
+    conditions_file     = os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['conditions filename'])
 
     """ Conditions checkout """
 
@@ -194,17 +104,22 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
 
     # Check if dataset already exists
     if os.path.exists(dataset_path):
-        print('\n','DATASET already computed')
-        if 'n' in input('Do you want to append new content? (yes/no)'):
-            return
-        else:
+        ans = input('\nDATASET already computed (append/overwrite/quit):')
+        if 'a' in ans:
             pass
+        if 'o' in ans:
+            self.clear_dataset(auto=True)
+        if 'q' in ans:
+            return
 
     # Check if dataset book already exists
-    column_names = ['delta_T','delta_EPS','parent1','parent2','spectralshift']
+    column_names = ['delta_T','delta_EPS','parent1','parent2','spectralshift','x','d_flecha']
     if not os.path.isfile(dataset_book_path):
         df = pd.DataFrame(columns = column_names,dtype=object)
         df.to_csv(dataset_book_path,index=False)
+
+
+    """ Dataset generation """
 
     # Create a dataframe to storage new information
     new_information = pd.DataFrame(columns = column_names,dtype=object)
@@ -212,22 +127,18 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
     # Load/initialize dataset
     dataset_obj = dataset(os.path.join(self.path,self.folders['3_DATASET']),self.INFO['dataset filename'])
 
-    """ Dataset generation """
-
-    # Initialize lists of lists
-    data     = [[0],[0]]
-    ref_data = [[0],[0]]
-
     # Generate dataset
     LEN = int(len(slices_book.index)); i=0; elements=0
     printProgressBar(0, LEN, prefix = 'Progress:', suffix = 'Complete', length = 50); i += 1
 
     for index, row in slices_book.iterrows():
 
-
         # Avoid certain lenght (noise or whatever)
-        if isinstance(avoid_segment[0], float) and isinstance(avoid_segment[1], float):
-            if avoid_segment[0] <= slices_book['x'] and slices_book['x'] <= avoid_segment[0]:
+        if (isinstance(avoid_segment[0], float) or isinstance(avoid_segment[0], int))  and (isinstance(avoid_segment[1], float) or isinstance(avoid_segment[1], int)):
+            if avoid_segment[0] <= float(row['x']) and float(row['x']) <= avoid_segment[1]:
+                continue
+        if (isinstance(conserve_segment[0], float) or isinstance(conserve_segment[0], int))  and (isinstance(conserve_segment[1], float) or isinstance(conserve_segment[1], int)):
+            if float(row['x']) <= conserve_segment[0]  and conserve_segment[1] <= float(row['x']):
                 continue
 
         # Search in dataframe for other rows to consider as reference
@@ -248,15 +159,20 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
             # Create frecuency array
             f = np.linspace(row['f_0'],row['f_end'],3)
 
-            # Access data
+            # Access signal data from slices, preprocess it and then save in dataset as input for NN
+            data        = [[0],[0]]
+            ref_data    = [[0],[0]]
+
             data[0]     = slices_obj.slices[row['ID']].P
             data[1]     = slices_obj.slices[row['ID']].S
 
             ref_data[0] = slices_obj.slices[ref_row['ID']].P
             ref_data[1] = slices_obj.slices[ref_row['ID']].S
 
-            X = layer00(data,ref_data,f)
+            X = layer0(data,ref_data,f)
             dataset_obj.X.append(X)
+
+            # Access status information of the slice to create outputs for NN
 
             delta_T         = row['temperature']-ref_row['temperature']     # K
             delta_flecha    = (row['flecha']-ref_row['flecha']) * 1e-3      # mm to m
@@ -268,6 +184,8 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
 
             dataset_obj.Y.append(np.array([delta_T,delta_EPS]))
 
+            # Take information of which slices compounds each dataset
+
             parent1 = row['ID']
             parent2 = ref_row['ID']
 
@@ -275,7 +193,6 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None])
 
             # Information to book
 
-            more_info = True
             if more_info:
                 new_row = {
                 'delta_T'   : delta_T,

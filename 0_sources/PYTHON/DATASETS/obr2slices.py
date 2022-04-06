@@ -10,6 +10,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils import printProgressBar
 
 class a_slice(object):
+    """
+    Container class for one slice
+    """
+
     def __init__(slice_obj):
         slice_obj.ID           = 0
         slice_obj.temperature  = 0
@@ -26,6 +30,10 @@ class a_slice(object):
         slice_obj.S            = list()
 
 class slices(object):
+    """
+    Class to contain a dataset of single slices
+    """
+
     def __init__(self,path,name):
 
         self.path   = path
@@ -51,14 +59,14 @@ class slices(object):
     from .load import load
 
 
-def obr2slices(self,delta=300,window=1000):
+def obr2slices(self,delta=2000,window=1000):
 
-    """ Creates a folder full of data by slicing .obr data contained in files
+    """
+    Creates a slices object full of slices by slicing .obr data contained in self.obrfiles
 
-            param: self (object): all the information about .obr will be extracted from obr_book.csv
-
-            optional: delta = 300       : step
+            optional: delta  = 2000     : step
             optional: window = 1000     : window
+
     """
 
     """ OBR checkout """
@@ -79,17 +87,18 @@ def obr2slices(self,delta=300,window=1000):
 
     # Check if slices were previously created
     if os.path.exists(os.path.join(self.path,self.folders['2_SLICES'],self.INFO['slices filename'])):
-        print('\n','SLICES already computed')
-        if 'n' in input('Do you want to append new content? (yes/no)'):
-            return
-        else:
+        ans = input('\nSLICES already computed (append/overwrite/quit):')
+        if 'a' in ans:
             pass
+        if 'o' in ans:
+            self.clear_slices(auto=True)
+        if 'q' in ans:
+            return
+
+    """ Slices generation """
 
     # Open/create slices object
     slices_obj = slices(os.path.join(self.path,self.folders['2_SLICES']),self.INFO['slices filename'])
-
-
-    """ Slices generation """
 
     # Generate slices
     LEN = len(self.obrfiles);i=0
@@ -102,13 +111,21 @@ def obr2slices(self,delta=300,window=1000):
     # Save updated slices object
     slices_obj.save()
 
-def gen_slices(self,obrfile,slices_obj,delta=300,window=1000):
-    """ Generates slices from an OBR and labels the slices in a csv named 'slices.csv'
+def gen_slices(self,obrfile,slices_obj,delta=2000,window=1000):
+    """
+    Generates slices from an OBR and labels the slices in slices book.
 
-            param: obrfile (obrfile, object)    : an object which contains all the information required
+    The slices are created by taking the entire signal and then
+    traversing it in jumps of points of size "step" and considering
+    the points to be in a bubble of radius "window".
 
-            optional: delta = 300       : step
-            optional: window = 1000     : window
+            param: obrfile    (obrfile object)    : an object which contains all the information required
+            param: slices_obj (object)            : the slices object which will contain the slices and that will be saved
+
+            optional: delta  = 2000     : step
+            optional: window = 1000     : half window size
+
+            returns: slices_obj (slices object): an object which contains all the slices
     """
 
     # Paths
@@ -137,9 +154,9 @@ def gen_slices(self,obrfile,slices_obj,delta=300,window=1000):
 
     """ Get information about state of the fiber """
 
-
     # Full data length
     n = len(obrfile.Data[0])
+
     # Corresponding steps
     steps = range(window,n-window+1,delta)
 

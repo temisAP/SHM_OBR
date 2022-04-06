@@ -75,8 +75,8 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
         newX, newY = load_one_dataset(dataset)
 
         # Reduce data
-        newX = random.sample(newX,int(len(newX)*percentage/100))
-        newY = random.sample(newY,int(len(newY)*percentage/100))
+        #newX = random.sample(newX,int(len(newX)*percentage/100))
+        #newY = random.sample(newY,int(len(newY)*percentage/100))
 
         # Extend dataset with new value
         self.X.extend(newX)

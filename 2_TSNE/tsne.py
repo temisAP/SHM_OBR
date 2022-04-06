@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../0_sources/PYTHON'))
 from IA import IA
 
 
-dataset = 'CMT_reduced'
+dataset = 'test_1'
 path_to_dataset = f'../../../../Datasets/{dataset}/3_DATASET/dataset.pkl'
 path_to_dataset = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACION/{dataset}/3_DATASET/dataset.pkl'
 
@@ -30,12 +30,6 @@ IA_obj.save()
 
 # %%
 
-n = int(3000)
-
-from random import sample
-IA_obj.X = sample(list(IA_obj.X),n)
-IA_obj.Y = sample(list(IA_obj.Y),n)
-
 IA_obj.save()
 
 # %%
@@ -45,6 +39,8 @@ IA_obj.save()
 ss    = np.array([lst[0] for lst in IA_obj.X])
 temps = np.array([lst[0] for lst in IA_obj.Y])
 defs  = np.array([lst[1] for lst in IA_obj.Y])
+
+# %%
 
 # Plot spectralshift
 fig, ax = plt.subplots(1,2)
@@ -73,7 +69,7 @@ plt.show()
 """ TSNE """
 
 # Fit the model
-model = TSNE(n_components=2, perplexity=30.0, early_exaggeration=12.0,learning_rate=50)
+model = TSNE(n_components=2, perplexity=30.0, early_exaggeration=12.0,learning_rate=100)
 np.set_printoptions(suppress=True)
 Y =  model.fit_transform(IA_obj.X)
 
