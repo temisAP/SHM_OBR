@@ -3,54 +3,100 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-class Compressor(nn.Module):
-    """ Compressor for signal  """
+class Filter(nn.Module):
+    """ Filter inputs to get a smother signal """
     def __init__(self,input_dim,output_dim):
         super().__init__()
         # Dimensions
         self.input_dim = input_dim
         self.output_dim = output_dim
-        N = 3
-        hidden_dim = np.linspace(input_dim,output_dim,N+1,dtype = np.int32)[1:-1]
+        N = 2
+        dimensions = np.linspace(input_dim,output_dim,N+1,dtype = np.int32)
         # Layer secuence
-        self.FC = nn.Sequential(
-            nn.Linear(input_dim,hidden_dim[0]),
-            nn.Tanh(),
-            #nn.Dropout(p=0.2),
-            nn.Linear(hidden_dim[0],hidden_dim[1]),
-            nn.Tanh(),
-            #nn.Dropout(p=0.2),
-            nn.Linear(hidden_dim[1],output_dim),
-            nn.Tanh()
-            ).apply(init_weights)
-    def forward(self, x):
-        x = self.FC(x)
-        return x
+        self.FC = nn.Sequential()
+        for i in range(N):
+            self.FC.add_module("Linear"+str(i),nn.Linear(dimensions[i],dimensions[i+1]))
+            self.FC.add_module("BatchNorm"+str(i),nn.BatchNorm1d(dimensions[i+1]))
+            self.FC.add_module("Tanh"+str(i),nn.Tanh())
+        self.FC.add_module("Linear"+str(N),nn.Linear(dimensions[-1],output_dim))
+        self.FC.add_module("Tanh"+str(N),nn.Tanh())
+    def forward(self,x):
+        return self.FC(x)
+
+class Convolutional(nn.Module):
+    """ Takes 4 channels and returns 1 using a CNN (convolutional neural network)  """
+    def __init__(self,input_channels,output_channels,input_dim,output_dim):
+        super().__init__()
+        # Dimensions and channels
+        self.input_channels  = input_channels
+        self.output_channels = output_channels
+        self.output_dim = int(output_dim)
+        self.input_dim = int(input_dim)
+
+        # Number of channels
+        N = 2
+        channels = np.linspace(input_channels,output_channels,N+1,dtype = np.int32)
+
+        # Output dimension when convolutional cycle has finished
+        padding = 1     # default 0
+        dilation = 1    # default 1
+        kernel_size = 3 # to be set
+        stride = 1      # default 1
+
+        B = stride
+        A = (2*padding-dilation*(kernel_size-1)-1) / stride + 1
+
+        L_out = int(input_dim/B**N + sum([A/B**k for k in range(0,N)]))
+
+        # Convolutional secuence
+        self.CNN = nn.Sequential()
+        for i in range(N):
+            self.CNN.add_module("Conv"+str(i),nn.Conv1d(channels[i],channels[i+1],
+                kernel_size = kernel_size,padding = padding, dilation=dilation, stride = stride))
+            self.CNN.add_module("Tanh"+str(i),nn.Tanh())
+
+        # Fully connected secuence
+        self.FC = nn.Sequential()
+        self.FC.add_module("Linear",nn.Linear(L_out,output_dim))
+        self.FC.add_module("Sigmoid",nn.Sigmoid())
+
+        # Initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv1d):
+                nn.init.xavier_uniform_(m.weight)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm1d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+    def forward(self,x):
+        bs = x.shape[0]
+        x   = self.CNN(x)
+        out = self.FC(x.reshape(bs,-1))
+        return out
 
 class Regressor(nn.Module):
-    """ Regressor for one characteristic """
+    """ Regressor for one characteristic, uses a fully conected stages """
     def __init__(self,input_dim,output_dim):
         super().__init__()
         # Dimensions
         self.input_dim = input_dim
         self.output_dim = output_dim
         N = 3
-        hidden_dim = np.linspace(input_dim,output_dim,N+1,dtype = np.int32)[1:-1]
+        dimensions = np.linspace(input_dim,output_dim,N+1,dtype = np.int32)
         # Layer secuence
-        self.FC = nn.Sequential(
-            nn.Linear(input_dim,hidden_dim[0]),
-            nn.Tanh(),
-            #nn.Dropout(p=0.2),
-            nn.Linear(hidden_dim[0],hidden_dim[1]),
-            nn.Tanh(),
-            #nn.Dropout(p=0.2),
-            nn.Linear(hidden_dim[1],output_dim),
-            nn.Tanh()
-            ).apply(init_weights)
-    def forward(self, x):
-        x = self.FC(x)
-        return x
-
+        self.FC = nn.Sequential()
+        for i in range(N):
+            self.FC.add_module("Linear"+str(i),nn.Linear(dimensions[i],dimensions[i+1]))
+            self.FC.add_module("BatchNorm"+str(i),nn.BatchNorm1d(dimensions[i+1]))
+            self.FC.add_module("Tanh"+str(i),nn.Tanh())
+        self.FC.add_module("Linear"+str(N),nn.Linear(dimensions[-1],output_dim))
+        self.FC.add_module("Tanh"+str(N),nn.Tanh())
+    def forward(self,x):
+        return self.FC(x)
 
 class splitter(nn.Module):
     """
@@ -58,54 +104,40 @@ class splitter(nn.Module):
         temperature or deformation from signal
     """
 
-    def __init__(self, components = ['ss','cc','ac'], Ls = [1,2000,400] , rhos = [1,100,2]):
+    def __init__(self,  dims = [2000,500,250,1]):
         super(splitter, self).__init__()
 
-        # Signal components
-        self.components = dict.fromkeys(components)     # Name
-        self.Ls         = Ls                            # Lenght
-        self.rhos       = rhos                          # Compression rate
+        self.dims = dims
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        # Compressor layers
-        self.C_ss = Compressor(Ls[0],int(Ls[0]/rhos[0]))
-        self.C_cc = Compressor(Ls[1],int(Ls[1]/rhos[1]))
-        self.C_ac = Compressor(Ls[2],int(Ls[2]/rhos[2]))
+        # Filter/transformation layers
+        self.Filter = Filter(dims[0],dims[1])
+
+        # Convolutional layers
+        self.Convolution = Convolutional(6,1,dims[1],dims[2])
 
         # Regressor layers
-        input_size  = sum( [int(L/rho) for L,rho in zip(Ls,rhos)] ) #- int(Ls[1]/rhos[1])
-        self.R   = Regressor( input_size , 1)
+        self.Regression   = Regressor(dims[2]+1,dims[3])
 
     def forward(self, x):
-        """
-        X components:
 
-                X[0:0]       || X[0           :Ls[0]]             || -> Spectral shift
-                X[1:2001]    || X[Ls[0]       :Ls[0]+Ls[1]]       || -> Cross correlation
-                X[2001:2401] || X[Ls[0]+Ls[1] :Ls[0]+Ls[1]+Ls[2]] || -> Autocorrelation
+        # Reshape
+        bs = x.shape[0] # Batch size = x[bs,:]
+        freqs = x[:,-1:]            # Frequencies
+        x     = x[:,:-1]            # Correlations
+        x     = x.reshape(bs,6,-1)  # Reshape as a tensor whose rows are the six possible correlations
 
-        """
+        # Filter/transformation of each signal
+        y = torch.from_numpy( np.empty(( bs,6,self.dims[1] )) ).float().to(self.device)
+        for i in range(6):
+            y[:,i,:] = self.Filter(x[:,i,:])
 
+        # Convolutional layers
+        y = y.reshape(bs,6,-1)
+        y = self.Convolution(y)
 
-        # Batch size = x[bs,:]
-        bs = x.shape[0]
-        Ls = self.Ls
-
-        # First_Stage_Layers
-        x1 = x[: ,             :Ls[0]       ].reshape(bs,-1)
-        x2 = x[: ,  Ls[0]      :Ls[0]+Ls[1] ].reshape(bs,-1)
-        x3 = x[: , -Ls[2]      :            ].reshape(bs,-1)
-        y1 = x1
-        y2 = self.C_cc(x2)
-        y3 = self.C_ac(x3)
-
-        x = torch.cat((y1,y2,y3), 1)
-
-        # Second_Stage_Layers
-        out = self.R(x)
+        # Regressor layer
+        y = torch.cat((y,freqs), 1)
+        out = self.Regression(y)
 
         return out
-
-def init_weights(m):
-    if isinstance(m, nn.Linear):
-        torch.nn.init.xavier_uniform_(m.weight)
-        m.bias.data.fill_(0.01)

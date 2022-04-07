@@ -115,9 +115,11 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
 
         self.clear_dataset(auto=True) # To free RAM space self.X and self.Y now are empty
         zero_time = float(time.time())
-        while psutil.virtual_memory()[2] < 90:
+        while psutil.virtual_memory()[2] > 90:
+            print('Waiting for RAM space')
             time.sleep(1)
             if float(time.time())-zero_time > 60:
+                print('Timeout')
                 exit()
 
         if val_percentage != 0:
