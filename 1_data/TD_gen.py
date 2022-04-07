@@ -23,7 +23,7 @@ CM2_obj = DATASETS(path_to_folder)
 #CM2_obj.save()
 #exit()
 
-CM2_obj.obr2slices(delta=200)
+CM2_obj.obr2slices(delta=2000)
 #CM2_obj.save()
 
 # slices = CM2_obj.load_slices()
