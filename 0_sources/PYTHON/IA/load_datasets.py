@@ -6,6 +6,7 @@ import numpy as np
 from torchvision import datasets, transforms
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
+import psutil
 
 
 class the_dataset(Dataset):
@@ -86,8 +87,13 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
 
     if split:
 
+        # Absolute values
+        test_percentage  = test_percentage/100
+        val_percentage   = val_percentage /100
+        train_percentage = 1 - test_percentage - val_percentage
+        train_val_percentage = 1 - test_percentage
+
         # Validation percentage after splitting train and test
-        train_val_percentage    = 100 - test_percentage
         val_percentage          = val_percentage/train_val_percentage
         train_percentage        = train_percentage/train_val_percentage
 
@@ -105,13 +111,17 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
         X = dict.fromkeys(percentages.keys())
         y = dict.fromkeys(percentages.keys())
 
-        X['train'], X['test'], y['train'], y['test']  = train_test_split(self.X, self.Y, test_size = percentages['test']/100, random_state=1)
+        X['train'], X['test'], y['train'], y['test']  = train_test_split(self.X, self.Y, test_size = percentages['test'], random_state=1)
 
         self.clear_dataset(auto=True) # To free RAM space self.X and self.Y now are empty
-        time.sleep(10)
+        zero_time = float(time.time())
+        while psutil.virtual_memory()[2] < 90:
+            time.sleep(1)
+            if float(time.time())-zero_time > 60:
+                exit()
 
         if val_percentage != 0:
-            X['train'], X['val'], y['train'], y['val']  =  train_test_split(X['train'], y['train'], test_size = percentages['val']/100, random_state=1) # 0.25 x 0.8 = 0.][
+            X['train'], X['val'], y['train'], y['val']  =  train_test_split(X['train'], y['train'], test_size = percentages['val'], random_state=1)
     else:
         X = self.X
         y = self.Y
