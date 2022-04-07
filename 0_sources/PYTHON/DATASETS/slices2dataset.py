@@ -6,7 +6,7 @@ from .obr2slices import slices
 from .zero_layers import layer0 as layer0
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../0_sources/PYTHON'))
-from utils import printProgressBar
+from UTILS.utils import printProgressBar
 
 import numpy as np
 

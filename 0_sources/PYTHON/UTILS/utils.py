@@ -121,10 +121,6 @@ def create_onedrive_directdownload(onedrive_link):
     resultUrl = f"https://api.onedrive.com/v1.0/shares/u!{data_bytes64_String}/root/content"
     return resultUrl
 
-import glob 
-import os 
-import re
-
 def find_OBR(path):
     """ Function to find all .obr files from a folder
 
@@ -133,7 +129,7 @@ def find_OBR(path):
 
     """
     # Find all .obr files
-    obr_files = glob.glob(os.path.join(path,'*.obr'))
+    obr_files = glob.glob(os.path.join(path,'0_OBR','*.obr'))
     # Keep just filename and extension
     obr_files = [os.path.basename(f) for f in obr_files]
     return obr_files
@@ -158,3 +154,37 @@ def find_all_OBR(path):
     obr_files = remove_extension(obr_files)
 
     return obr_files
+
+def get_status(filename):
+
+    """ Checks filename format, then extracts temperature and delfection from the name
+
+        Valid formats are:
+                [temperature]_grados.obr               -> For just-temperature samples
+                [flecha]_mm.obr                        -> For just-flexion samples
+                [flecha]_mm_[temperature]_grados.obr   -> For flexion-temperature samples
+
+        returns: Temperature, flecha :temperature and deflection (in mm)
+
+     """
+
+    # Determine type of sample
+    if 'grados' in filename and not '_mm_' in filename:
+        flecha = 0
+        temperature = filename.split('_')[0]
+    elif 'mm' in filename and not 'grados' in filename:
+        flecha = filename.split('_')[0]
+        temperature = 0
+    elif 'mm' in filename and 'grados' in filename:
+        flecha = filename.split('_')[0]
+        temperature = filename.split('_')[2]
+    else:
+        print('ERROR: File format not recognized')
+        return '?','?'
+
+    # Convert temperature to float
+    temperature = float(temperature)
+    # Convert flecha to float
+    flecha = float(flecha)
+
+    return temperature, flecha

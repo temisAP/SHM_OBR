@@ -4,7 +4,7 @@ from scipy import signal
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils import printProgressBar
+from UTILS.utils import printProgressBar
 
 
 """ Spectral shift

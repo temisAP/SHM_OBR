@@ -7,7 +7,7 @@ import time
 import json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils import printProgressBar
+from UTILS.utils import printProgressBar
 
 class a_slice(object):
     """

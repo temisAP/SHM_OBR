@@ -116,7 +116,7 @@ class DATASETS(object):
 
     from .conditions import genCONDITIONStemplate
 
-    from .obr import obr, computeOBR, genOBRbook, obr_ss
+    from .obr import obr, computeOBR, genOBRbook, obr_ss, local_analysis
 
     from .obr2slices import obr2slices, gen_slices, genSLICESbook
 

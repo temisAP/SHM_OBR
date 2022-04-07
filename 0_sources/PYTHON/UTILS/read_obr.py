@@ -1,7 +1,6 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils import find_index
+from .utils import find_index
 
 import numpy as np
 import matplotlib.pyplot as plt
