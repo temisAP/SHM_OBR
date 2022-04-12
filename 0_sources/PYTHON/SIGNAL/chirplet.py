@@ -379,11 +379,38 @@ def build_fft(input_signal, filter_coefficients, threshold_windows=6, boundary=0
 import matplotlib.pyplot as plt
 from .spectrogram import spectrogram
 
-def chirplet(y,plot=False,sample_rate=1):
+def chirplet(y, f, plot=False,
+                duration_longest_chirplet = 1,
+                num_chirps_by_octave = 10,
+                polynome_degree = 0
+                end_smoothing = 0.001):
 
-    """ Function to compute Chirplet transform of the signal """
+    """
+    Function to compute Chirplet transformation of the signal
 
-    chirps = FCT()
+        :param y (array): signal
+        :param f (array): frequency distribution [GHz]
+
+        :optional duration_longest_chirplet = 1
+        :optional num_chirps_by_octave = 10
+        :optional polynome_degree = 0
+        :optional end_smoothing = 0.001
+
+        :return fct (2d array): chriplet transformation of the signal
+
+    """
+
+    num_octaves = np.log2(f[-1]/f[0])
+    sample_rate = 1/(f[1]-f[0])/1e9
+
+
+    chirps = FCT(duration_longest_chirplet  = duration_longest_chirplet,
+                    num_octaves             = num_octaves,
+                    num_chirps_by_octave    = num_chirps_by_octave,
+                    polynome_degree         = polynome_degree,
+                    end_smoothing           = end_smoothing,
+                    sample_rate             = sample_rate)
+
     fct = chirps.compute(y)
 
     if plot:

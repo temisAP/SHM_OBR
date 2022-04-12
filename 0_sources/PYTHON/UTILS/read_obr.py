@@ -14,19 +14,22 @@ def read_obr(file):
 
         returns
             f       (np.array)  : Distribución espectral [GHz] (de SF a SF+FI*2*n en incrementos de FI)
-            z       (np.array)  : Distribución espacial [m]
-            Pc      (np.array)  : Medida Primaria (compleja)
-            Sc      (np.array)  : Medida Secundaria (compleja)
-            Hc      (np.array)  : Suma de primaria y secundaria (compleja)
+            z       (np.array)  : Distribución espacial  [m]
+            Pc      (complex np.array)  : Medida de la polarización p
+            Sc      (complex np.array)  : Medida de la polarización s
+            Hc      (complex np.array)  : Suma de de la polarización p y s
+
+        * Along this file some information has been commented out for a faster reading
+          please feel free of uncoment whenever you may need
 
     """
 
     # Lectura de datos
 
-    FileForVer=np.fromfile(file, count=1, dtype= np.dtype('<f'))[0]                 # Versi�n del formato del archivo (3.4)
+    #FileForVer=np.fromfile(file, count=1, dtype= np.dtype('<f'))[0]                 # Versi�n del formato del archivo (3.4)
     offset = np.dtype('<f').itemsize
 
-    ObrOfdr=np.fromfile(file, count=8,dtype= '|S1', offset = offset).astype('|U8')  # Tipo de archivo. String sin sentido
+    #ObrOfdr=np.fromfile(file, count=8,dtype= '|S1', offset = offset).astype('|U8')  # Tipo de archivo. String sin sentido
     offset += np.dtype('|U8').itemsize
     offset = 12 # Ni idea de por qué este offset pero funciona
 
@@ -48,19 +51,19 @@ def read_obr(file):
 
     dt=TimeIncr                                                                     # [ns] Incremento de tiempo=delta de tiempo.
 
-    MeasurementType=np.fromfile(file, count=1,dtype= 'uint16',offset = offset)[0]   # Cero si es reflexi�n
+    #MeasurementType=np.fromfile(file, count=1,dtype= 'uint16',offset = offset)[0]   # Cero si es reflexi�n
     offset += np.dtype('uint16').itemsize
 
     GroupIndex=np.fromfile(file, count=1,dtype= np.dtype('<d'),offset = offset)[0]   # n de la fibra. Alrededor de 1.5
     offset += np.dtype('<d').itemsize
 
-    GainValue=np.fromfile(file, count=1,dtype= 'int32',offset = offset)[0]           # Ganancia (dB)
+    #GainValue=np.fromfile(file, count=1,dtype= 'int32',offset = offset)[0]           # Ganancia (dB)
     offset += np.dtype('int32').itemsize
 
-    ZeroLengthIndex=np.fromfile(file, count=1,dtype= 'int32',offset = offset)[0]     #(StartTime)/(Time increment) Columna que le corresponde al inicio de medida de la fibra exterior al OBR
+    #ZeroLengthIndex=np.fromfile(file, count=1,dtype= 'int32',offset = offset)[0]     #(StartTime)/(Time increment) Columna que le corresponde al inicio de medida de la fibra exterior al OBR
     offset += np.dtype('int32').itemsize
 
-    DataTypeSize=np.fromfile(file, count=1,dtype= 'uint32',offset = offset)[0]       #Numero de bytes de cada punto (8)
+    #DataTypeSize=np.fromfile(file, count=1,dtype= 'uint32',offset = offset)[0]       #Numero de bytes de cada punto (8)
     offset += np.dtype('uint32').itemsize
 
     nPoints=np.fromfile(file, count=1,dtype= 'uint32',offset = offset)[0]            #Numero de puntos del Array (Real + Imaginario)
@@ -74,46 +77,47 @@ def read_obr(file):
     CalibrationDate=np.fromfile(file, count=8,dtype= 'uint16',offset = offset)       #Fecha de la calibraci�n
     offset += np.dtype('uint16').itemsize * 8
 
-    TempCoeffs=np.fromfile(file, count=5,dtype= np.dtype('<d'),offset = offset)      #Coeficientes de la conversi�n en temperatura
+    #TempCoeffs=np.fromfile(file, count=5,dtype= np.dtype('<d'),offset = offset)      #Coeficientes de la conversi�n en temperatura
     offset += np.dtype('<d').itemsize * 5
 
-    StrainCoeffs=np.fromfile(file, count=5,dtype= np.dtype('<d'),offset = offset)    #Coeficientes de la conversi�n en deformaciones
+    #StrainCoeffs=np.fromfile(file, count=5,dtype= np.dtype('<d'),offset = offset)    #Coeficientes de la conversi�n en deformaciones
     offset += np.dtype('<d').itemsize * 5
 
-    FreqWinFlg=np.fromfile(file, count=1,dtype= 'uint8',offset = offset)[0]          #1 Si se le ha aplicado el filtro en frecuencias. Cero si no se ha hecho
+    #FreqWinFlg=np.fromfile(file, count=1,dtype= 'uint8',offset = offset)[0]          #1 Si se le ha aplicado el filtro en frecuencias. Cero si no se ha hecho
     offset += np.dtype('uint8').itemsize
 
-    Unused=np.fromfile(file, count=1865,dtype= 'uint8',offset = offset)              #Sin uso
+    #Unused=np.fromfile(file, count=1865,dtype= 'uint8',offset = offset)              #Sin uso
     offset += np.dtype('uint8').itemsize * 1865
 
-    Preal=np.fromfile(file, count=n,dtype= np.dtype('<d'),offset = offset)     #Primaria Real (en función del tiempo)
+    Preal=np.fromfile(file, count=n,dtype= np.dtype('<d'),offset = offset)     #Medida de la polarización p Real (en función del tiempo)
     offset += np.dtype('<d').itemsize * n
-    Pimag=np.fromfile(file, count=n,dtype= np.dtype('<d'),offset = offset)     #Primaria Imaginaria
+    Pimag=np.fromfile(file, count=n,dtype= np.dtype('<d'),offset = offset)     #Medida de la polarización p Imaginaria
     offset += np.dtype('<d').itemsize * n
-    Sreal=np.fromfile(file, count=n,dtype= np.dtype('<d'),offset = offset)     #Secundaria Real
+    Sreal=np.fromfile(file, count=n,dtype= np.dtype('<d'),offset = offset)     #Medida de la polarización s Real
     offset += np.dtype('<d').itemsize * n
-    Simag=np.fromfile(file, count=n,dtype= np.dtype('<d'),offset = offset)     #Secundaria Imaginaria
+    Simag=np.fromfile(file, count=n,dtype= np.dtype('<d'),offset = offset)     #Medida de la polarización s Imaginaria
     offset += np.dtype('<d').itemsize * n
 
     # Device=np.fromfile(file, count=1, dtype= '|S1', offset = offset)[0].astype('|U8')  #Depende del nombre del archivo
 
-
-
     #fclose(file)
+
+    """ Posterior calculations """
+
     GroupIndex = 1.4682
 
     tf=(n-1)*dt                            #f es el valor final de tiempo hasta el que se mide, calculado a traves del numero de puntos del array (n)
     t=np.arange(0,tf+dt,dt)                #t es un array que tiene un incremento lineal delta de tiempo hasta el tiempo final de medida
     t=t+StartTime
-    z=t*((299792458e-9)/(GroupIndex*2))    #tiempo en nanosegundos, z en metros 299792458 es la velocidad de la luz en el vacio y en indice de grupo es el indice de refracci�n medio de la fibra
-    f=np.arange(SF-FI*2*n,SF+FI,FI)        #f es un array que tiene un incremento lineal (incremento de frecuencia) desde la frecuencia de inicio hasta la última
+    z=t*((299792458e-9)/(GroupIndex*2))    #[m]     -> tiempo en nanosegundos, z en metros 299792458 es la velocidad de la luz en el vacio y en indice de grupo es el indice de refracci�n medio de la fibra
+    f=np.arange(SF-FI*2*n,SF+FI,FI)        #[GHz]   -> f es un array que tiene un incremento lineal (incremento de frecuencia) desde la frecuencia de inicio hasta la última
 
     ###
 
-    Pc=Preal+Pimag*1j     #Pc es la medida Primaria en complejos
-    #Plog=log10(abs(Pc))  #Plog es la medida Primaria en escala logaritmica
-    Sc=Sreal+Simag*1j     #Sc es la medida Secundaria en complejos
-    #Slog=log10(abs(Sc))  #Slog es la medida Secundaria en escala logaritmica
+    Pc=Preal+Pimag*1j     #Pc es la medida de la polarización p en complejos
+    #Plog=log10(abs(Pc))  #Plog es la medida de la polarización p en escala logaritmica
+    Sc=Sreal+Simag*1j     #Sc es la medida de la polarización s en complejos
+    #Slog=log10(abs(Sc))  #Slog es la medida de la polarización s en escala logaritmica
     Hc=Pc+Sc
     #Hc=((abs(Pc)).^2+(abs(Sc)).^2).^0.5           #Hc es la suma vectorial de P y S en complejos
     s=np.sum(np.absolute(Hc))
