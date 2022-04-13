@@ -273,11 +273,12 @@ def obr_ss(self,REF,type=None,eps=False):
 def local_analysis(self,files,position):
     """ Function to analize signal in a certain point """
 
-    from .analisis.local_analisis import analysis_1, analysis_2, analysis_3
+    from .analisis.local_analisis import analysis_0, analysis_1, analysis_2, analysis_3
 
+    analysis_0(self,files,position)
     #analysis_1(self,files,position)
     #analysis_2(self,files,position)
-    analysis_3(self,files,position)
+    #analysis_3(self,files,position)
 
 
 

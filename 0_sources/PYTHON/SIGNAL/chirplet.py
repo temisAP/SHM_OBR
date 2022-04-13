@@ -129,7 +129,7 @@ def resize_chirps(size_y, size_power_2, chirps):
     ratio = size_y/size_power_2
     size = int(ratio*len(chirps[0]))
 
-    resize_chirps = np.zeros((size_chirps, size))
+    resize_chirps = np.zeros((size_chirps, size),dtype=np.complex)
     for i in range(0, size_chirps):
         resize_chirps[i] = chirps[i][0:size]
     return resize_chirps
@@ -178,11 +178,11 @@ class Chirplet:
         if self._polynome_degree:
             temp = (self._max_frequency-self._min_frequency)
             temp /= ((self._polynome_degree+1)*self._duration**self._polynome_degree)*num_coeffs**self._polynome_degree+self._min_frequency
-            wave = cos(2*pi*num_coeffs*temp)
+            wave = exp(1j*2*pi*num_coeffs*temp)
         else:
             temp = (self._min_frequency*(self._max_frequency/self._min_frequency)**(num_coeffs/self._duration)-self._min_frequency)
             temp *= self._duration/log(self._max_frequency/self._min_frequency)
-            wave = cos(2*pi*temp)
+            wave = exp(1j*2*pi*temp)
 
         coeffs = wave*hanning(len(num_coeffs))**2
 
@@ -198,7 +198,7 @@ class Chirplet:
             fast Fourier transform of the audio signal applied to a specific domain of frequencies
         """
         windowed_fft = build_fft(input_signal, self._filter_coefficients, thresh_window)
-        return fft_smoothing(fabs(windowed_fft), end_smoothing)
+        return fft_smoothing(windowed_fft, end_smoothing)
 
 def apply_filterbank(input_signal, chirplets, end_smoothing):
     """generate list of signal with chirplets
@@ -248,8 +248,8 @@ def fft_smoothing(input_signal, sigma):
     short_fftx[:half_new_size] *= apodization_coefficients
     short_fftx[half_new_size:] *= flipud(apodization_coefficients)
 
-    realifftxw = ifft(short_fftx).real
-    return realifftxw
+    ifftxw = ifft(short_fftx)
+    return ifftxw
 
 def generate_apodization_coeffs(num_coeffs, sigma, size):
     """generate apodization coefficients
@@ -291,7 +291,7 @@ def fft_based(input_signal, filter_coefficients, boundary=0):
         return newx[num_coeffs-1:-1]
 
     else:#periodic
-        return roll(ifft(fft(input_signal)*fft(filter_coefficients, input_signal.size)), -half_size).real
+        return roll(ifft(fft(input_signal)*fft(filter_coefficients, input_signal.size)), -half_size)
 
 
 def build_fft(input_signal, filter_coefficients, threshold_windows=6, boundary=0):
@@ -342,7 +342,7 @@ def build_fft(input_signal, filter_coefficients, threshold_windows=6, boundary=0
     else:
         x_fft = fft(input_signal[:windows_size])
 
-    windowed_fft[:windows_size-num_coeffs] = (ifft(x_fft*h_fft)[num_coeffs-1:-1]).real
+    windowed_fft[:windows_size-num_coeffs] = (ifft(x_fft*h_fft)[num_coeffs-1:-1])
 
     current_pos += windows_size-num_coeffs-half_size
     #apply fast fourier transofm to each windows
@@ -350,7 +350,7 @@ def build_fft(input_signal, filter_coefficients, threshold_windows=6, boundary=0
 
         x_fft = fft(input_signal[current_pos-half_size:current_pos+windows_size-half_size])
         #Suppress the warning, work on the real/imagina
-        windowed_fft[current_pos:current_pos+windows_size-num_coeffs] = (ifft(x_fft*h_fft)[num_coeffs-1:-1]).real
+        windowed_fft[current_pos:current_pos+windows_size-num_coeffs] = (ifft(x_fft*h_fft)[num_coeffs-1:-1])
         current_pos += windows_size-num_coeffs
     # print(countloop)
     #apply fast fourier transform to the rest of the signal
@@ -359,14 +359,14 @@ def build_fft(input_signal, filter_coefficients, threshold_windows=6, boundary=0
         window = input_signal[current_pos-half_size:]
         zeropaddedwindow = np.lib.pad(window, (0, int(windows_size-(signal_size-current_pos+half_size))), 'constant', constant_values=0)
         x_fft = fft(zeropaddedwindow)
-        windowed_fft[current_pos:] = roll(ifft(x_fft*h_fft), half_size)[half_size:half_size+windowed_fft.size-current_pos].real
+        windowed_fft[current_pos:] = roll(ifft(x_fft*h_fft), half_size)[half_size:half_size+windowed_fft.size-current_pos]
         windowed_fft[-half_size:] = convolve(input_signal[-num_coeffs:], filter_coefficients, 'same')[-half_size:]
     else:
 
         window = input_signal[current_pos-half_size:]
         zeropaddedwindow = np.lib.pad(window, (0, int(windows_size-(signal_size-current_pos+half_size))), 'constant', constant_values=0)
         x_fft = fft(zeropaddedwindow)
-        windowed_fft[current_pos:] = ifft(x_fft*h_fft)[num_coeffs-1:num_coeffs+windowed_fft.size-current_pos-1].real
+        windowed_fft[current_pos:] = ifft(x_fft*h_fft)[num_coeffs-1:num_coeffs+windowed_fft.size-current_pos-1]
 
     return windowed_fft
 
@@ -379,17 +379,17 @@ def build_fft(input_signal, filter_coefficients, threshold_windows=6, boundary=0
 import matplotlib.pyplot as plt
 from .spectrogram import spectrogram
 
-def chirplet(y, f, plot=False,
+def chirplet(z, y, plot=False, verbose=False,
                 duration_longest_chirplet = 1,
                 num_chirps_by_octave = 10,
-                polynome_degree = 0
+                polynome_degree = 0,
                 end_smoothing = 0.001):
 
     """
     Function to compute Chirplet transformation of the signal
 
+        :param z (array): spactial distribution [m]
         :param y (array): signal
-        :param f (array): frequency distribution [GHz]
 
         :optional duration_longest_chirplet = 1
         :optional num_chirps_by_octave = 10
@@ -400,8 +400,23 @@ def chirplet(y, f, plot=False,
 
     """
 
-    num_octaves = np.log2(f[-1]/f[0])
-    sample_rate = 1/(f[1]-f[0])/1e9
+    f = np.sort(np.fft.fftfreq(len(z), d=z[1]-z[0]))
+    num_octaves = int(np.log2(f[-1]))
+    num_octaves = 1 if num_octaves == 0 else num_octaves
+    sample_rate = 1/(z[1]-z[0])
+
+    num_octaves = 2
+    num_chirps_by_octave = 2
+    duration_longest_chirplet = 0.5
+    polynome_degree = 1000
+
+    if verbose == True:
+        print('')
+        print('*Chirplet transform parameters')
+        print('length longest chirplet = ',duration_longest_chirplet,'m')
+        print('num octaves =',num_octaves)
+        print('num chirps by octave =', num_chirps_by_octave)
+        print('sample rate =', sample_rate, '1/m')
 
 
     chirps = FCT(duration_longest_chirplet  = duration_longest_chirplet,
@@ -413,12 +428,54 @@ def chirplet(y, f, plot=False,
 
     fct = chirps.compute(y)
 
-    if plot:
-        plot_chirplet(fct,y,sample_rate)
+    reconstruct_chirplet(fct,z,y,plot=True)
+
+    if plot == True:
+        if np.iscomplex(y[0]):
+            plot_chirplet(np.abs(fct),z,y)
+        else:
+            plot_chirplet(np.abs(fct),z,y)
+    elif plot == 'complex':
+            plot_complex_chirplet(fct,z,y)
 
     return fct
 
-def plot_chirplet(fct,y,sr):
+def reconstruct_chirplet(fct,z,y,plot=False):
+    """
+    Reconstructs signal from chirplets computed in fct, if plot is True adds a plot
+
+        :param: fct (NxM complex np.array): chirplet matrix where N is the number of chirplets and M is the dimension of each chirplet
+        :param: z   (real np.array):        time of time series
+        :param: y   (complex np.array):     time series
+
+        :returns: y0 (complex np.array):    time series reconstruction from the sum of the chirplets
+
+    """
+
+    y0 = np.sum(fct,axis=0)
+    y0 = np.interp(np.linspace(0, len(y)-1, len(y)), np.linspace(0, len(y0)-1, len(y0)), y0)
+
+    if plot:
+        fig, ax = plt.subplots(1,2,sharex=False)
+
+        ax[0].plot(z,np.real(y0),label='reconstructed')
+        ax[0].plot(z,np.real(y), label='original')
+        ax[0].grid()
+        ax[0].legend()
+        ax[0].set_title('real')
+
+
+        ax[1].plot(z,np.imag(y0),label='reconstructed')
+        ax[1].plot(z,np.imag(y), label='original')
+        ax[1].grid()
+        ax[1].legend()
+        ax[1].set_title('imag')
+
+        plt.show()
+    return y0
+
+def plot_chirplet(fct,time,y):
+    """ Just a plot """
     # Actually this is not my code, is from github examples
 
     figure, axarr = plt.subplots(2, sharex=False)
@@ -432,7 +489,7 @@ def plot_chirplet(fct,y,sr):
 
     print(freqs[0], mxf)
 
-    axarr[0].contour(tabfinal,
+    axarr[0].pcolormesh(tabfinal,
                                       #origin='lower',
                                       #extent=(0, times[-1],freqs[0], mxf),
                                       #aspect='auto',
@@ -441,22 +498,25 @@ def plot_chirplet(fct,y,sr):
     sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=np.amin(tabfinal), vmax=np.amax(tabfinal)))
     cbar = plt.colorbar(sm,ax=axarr[0],spacing='proportional')
     axarr[0].set_aspect('auto')
-    axarr[0].set_ylim(1e-1,None)
     axarr[0].axes.xaxis.set_ticks_position('bottom')
-    axarr[0].set_ylabel("Frequency in Hz")
+    axarr[0].set_ylabel("Chirplet channel")
     axarr[0].xaxis.grid(which='major', color='Black',
                                  linestyle='-', linewidth=0.25)
     axarr[0].yaxis.grid(which='major', color='Black',
                                  linestyle='-', linewidth=0.25)
-    axarr[0].set_yscale('log')
+    #axarr[0].set_yscale('log')
 
     axarr[0].set_title('Chirplet transform')
 
 
 
-    time = np.linspace(0, len(y) / sr, num=len(y))
-    axarr[1].set_xlim([0, time[-1]])
-    axarr[1].plot(time, y)
+    axarr[1].set_xlim([time[0], time[-1]])
+    if np.iscomplex(y[0]):
+        axarr[1].plot(time,y.real,label='real')
+        axarr[1].plot(time,y.imag,label='imag')
+        axarr[1].legend(loc='upper left')
+    else:
+        axarr[1].plot(time, y)
 
     axarr[1].set_ylabel("Amplitude")
 
@@ -466,6 +526,90 @@ def plot_chirplet(fct,y,sr):
                                  linestyle='-', linewidth=0.25)
 
     axarr[1].set_title('Signal')
+
+
+    figure.tight_layout()
+
+def plot_complex_chirplet(fct,time,y):
+    # Actually this is not my code, is from github examples
+
+    figure, axarr = plt.subplots(2,2, sharex=False)
+
+    tabfinal=np.array(fct)
+
+    [freqs, times, spectrum] = spectrogram(y.real)
+
+    index_frequency = np.argmax(freqs)
+    mxf = freqs[index_frequency]
+
+    print(freqs[0], mxf)
+
+    axarr[0,0].pcolormesh(tabfinal.real,
+                                      #origin='lower',
+                                      #extent=(0, times[-1],freqs[0], mxf),
+                                      #aspect='auto',
+                                      cmap = 'jet'
+                                      )
+    sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=np.amin(tabfinal.real), vmax=np.amax(tabfinal.real)))
+    cbar = plt.colorbar(sm,ax=axarr[0,0],spacing='proportional')
+    axarr[0,0].set_aspect('auto')
+    axarr[0,0].axes.xaxis.set_ticks_position('bottom')
+    axarr[0,0].set_ylabel("Chirplet channel")
+    axarr[0,0].xaxis.grid(which='major', color='Black',
+                                 linestyle='-', linewidth=0.25)
+    axarr[0,0].yaxis.grid(which='major', color='Black',
+                                 linestyle='-', linewidth=0.25)
+
+    axarr[0,0].set_title('Chirplet transform (real)')
+
+
+
+    axarr[1,0].set_xlim([time[0], time[-1]])
+    axarr[1,0].plot(time, y.real)
+
+    axarr[1,0].set_ylabel("Amplitude")
+
+    axarr[1,0].axes.xaxis.set_ticks_position('bottom')
+    axarr[1,0].set_ylabel("Intensity")
+    axarr[1,0].xaxis.grid(which='major', color='Black',
+                                 linestyle='-', linewidth=0.25)
+
+    axarr[1,0].set_title('Signal (real)')
+
+
+    """ Imaginary """
+
+    axarr[0,1].pcolormesh(tabfinal.imag,
+                                      #origin='lower',
+                                      #extent=(0, times[-1],freqs[0], mxf),
+                                      #aspect='auto',
+                                      cmap = 'jet'
+                                      )
+    sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=np.amin(tabfinal.imag), vmax=np.amax(tabfinal.imag)))
+    cbar = plt.colorbar(sm,ax=axarr[0,1],spacing='proportional')
+    axarr[0,1].set_aspect('auto')
+    axarr[0,1].axes.xaxis.set_ticks_position('bottom')
+    axarr[0,1].set_ylabel("Chirplet channel")
+    axarr[0,1].xaxis.grid(which='major', color='Black',
+                                 linestyle='-', linewidth=0.25)
+    axarr[0,1].yaxis.grid(which='major', color='Black',
+                                 linestyle='-', linewidth=0.25)
+
+    axarr[0,1].set_title('Chirplet transform (imag)')
+
+
+
+    axarr[1,1].set_xlim([time[0], time[-1]])
+    axarr[1,1].plot(time, y.imag)
+
+    axarr[1,1].set_ylabel("Amplitude")
+
+    axarr[1,1].axes.xaxis.set_ticks_position('bottom')
+    axarr[1,1].set_ylabel("Intensity")
+    axarr[1,1].xaxis.grid(which='major', color='Black',
+                                 linestyle='-', linewidth=0.25)
+
+    axarr[1,1].set_title('Signal (imag)')
 
 
     figure.tight_layout()

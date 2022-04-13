@@ -25,18 +25,21 @@ def analysis_0(self,files,position):
     chirplets = dict.fromkeys(files)
     for file in files:
         y = self.obrfiles[file].Data[0]
-        f = self.obrfiles[file].f
-        i = find_index(self.obrfiles[file].z,position)
+        z = self.obrfiles[file].z
+        i = find_index(z,position)
 
         window = 1000
 
         y = y[i-window:i+window]
+        z = z[i-window:i+window]
 
-        chirplets[file] = chirplet(y,f,plot=False)
+        chirplets[file] = chirplet(z,y,plot='complex', verbose=False,
+                            duration_longest_chirplet = 5,
+                            num_chirps_by_octave = 1,
+                            polynome_degree = 10)
         #wavelet(y,plot=True)
 
-        plt.title(file)
-        plt.close()
+        plt.suptitle(file)
 
     plt.show()
 

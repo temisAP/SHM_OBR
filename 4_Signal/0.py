@@ -17,6 +17,9 @@ CM2_obj = DATASETS(path_to_folder)
 
 #CM2_obj.obr()
 #CM2_obj.obr_ss('7_mm_22_grados.obr',type='flecha',eps=True)
-CM2_obj.local_analysis(['0_mm_30_grados.obr','0_mm_50_grados.obr','12.447_mm_30_grados.obr','12.447_mm_50_grados.obr'],position = 5.0)
+#CM2_obj.local_analysis(['0_mm_30_grados.obr','0_mm_50_grados.obr','12.447_mm_30_grados.obr','12.447_mm_50_grados.obr'],position = 5.0)
+
+CM2_obj.local_analysis(['0_mm_30_grados.obr'],position = 5.0)
+
 CM2_obj.save()
 #exit()
