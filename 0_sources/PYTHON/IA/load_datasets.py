@@ -1,26 +1,9 @@
 import os
 import random
 import time
-import torch
 import numpy as np
-from torchvision import datasets, transforms
-from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 import psutil
-
-
-class the_dataset(Dataset):
-    """ Signal dataset """
-    def __init__(self, X, Y, transform=None):
-        self.x = torch.from_numpy( np.array(X) ).float()
-        self.y = torch.from_numpy( np.array(Y) ).float()
-        self.N = len(Y) # len(Y[:][0]) = 2 ; len(Y) = n_samples
-
-    def __len__(self):
-        return self.N
-
-    def __getitem__(self, idx):
-        return self.x[idx,:], self.y[idx,:]
 
 
 def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocessing=True, data_loaders = True, test_percentage=20,val_percentage=20, plot_preprocessing=False,plot_histogram=False):
@@ -115,14 +98,16 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
 
         self.clear_dataset(auto=True) # To free RAM space self.X and self.Y now are empty
         zero_time = float(time.time())
-        while psutil.virtual_memory()[2] < 90:
+        while psutil.virtual_memory()[2] > 90:
+            print('Waiting for more memory')
             time.sleep(1)
             if float(time.time())-zero_time > 60:
                 exit()
 
         if val_percentage != 0:
             X['train'], X['val'], y['train'], y['val']  =  train_test_split(X['train'], y['train'], test_size = percentages['val'], random_state=1)
-    else:
+
+
         X = self.X
         y = self.Y
 
@@ -134,22 +119,9 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
 
     """ Data loaders """
 
-
-    # Dict of dataloaders
-    if data_loaders and split:
-        dl = dict.fromkeys(X.keys())
-        for key, val in dl.items():
-            dl[key] = DataLoader(
-                        dataset=the_dataset(X[key],y[key]),
-                        batch_size=32,
-                        shuffle=True)
-    else:
-        dl = None
-
     # Re asign to object atribute
     self.X = X
     self.Y = y
-    self.dl = dl
 
 def load_one_dataset(dataset):
     """ Load a dataset storaged with pickle """

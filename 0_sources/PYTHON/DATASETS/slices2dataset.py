@@ -40,7 +40,7 @@ class dataset(object):
     from .load import load
 
 
-def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],conserve_segment=[None,None],more_info=True):
+def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],conserve_segment=[None,None],more_info=False):
     """ Function to load all slices (previously generated), compute them in pairs, and
     genenerate new values for a dataset
 
@@ -170,19 +170,15 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
             ref_data[1] = slices_obj.slices[ref_row['ID']].S
 
             X = layer0(data,ref_data,f)
-            dataset_obj.X.append(X)
+            dataset_obj.X.append(X[1:])
 
             # Access status information of the slice to create outputs for NN
 
-            delta_T         = row['temperature']-ref_row['temperature']     # K
-            delta_flecha    = (row['flecha']-ref_row['flecha']) * 1e-3      # mm to m
-            x               = row['x'] * 1e-3                               # mm to m
+            delta_T = 0
+            delta_EPS = 0
+            delta_flecha = 0
 
-            eps_mec = 3*delta_flecha*t/(2*L**3) * (x-L) * 1e6               # Mechanical microdeformations
-            eps_the = alpha * delta_T                                       # Thermal  microdeformations
-            delta_EPS = eps_mec + eps_the                                   # Total microdeformations
-
-            dataset_obj.Y.append(np.array([delta_T,delta_EPS]))
+            dataset_obj.Y.append(X[0])
 
             # Take information of which slices compounds each dataset
 
