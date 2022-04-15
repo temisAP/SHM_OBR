@@ -75,10 +75,6 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
         # Load new data
         newX, newY = load_one_dataset(dataset)
 
-        # Reduce data
-        #newX = random.sample(newX,int(len(newX)*percentage/100))
-        #newY = random.sample(newY,int(len(newY)*percentage/100))
-
         # Extend dataset with new value
         self.X.extend(newX)
         self.Y.extend(newY)
@@ -115,7 +111,8 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
 
         self.clear_dataset(auto=True) # To free RAM space self.X and self.Y now are empty
         zero_time = float(time.time())
-        while psutil.virtual_memory()[2] < 90:
+        while psutil.virtual_memory()[2] > 90:
+            print('Waiting for memory')
             time.sleep(1)
             if float(time.time())-zero_time > 60:
                 exit()

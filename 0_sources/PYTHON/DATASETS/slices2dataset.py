@@ -170,7 +170,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
             ref_data[1] = slices_obj.slices[ref_row['ID']].S
 
             X = layer0(data,ref_data,f)
-            dataset_obj.X.append(X)
+            dataset_obj.X.append(X[1:])
 
             # Access status information of the slice to create outputs for NN
 
@@ -182,7 +182,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
             eps_the = alpha * delta_T                                       # Thermal  microdeformations
             delta_EPS = eps_mec + eps_the                                   # Total microdeformations
 
-            dataset_obj.Y.append(np.array([delta_T,delta_EPS]))
+            dataset_obj.Y.append(np.array([X[0],X[0]]))
 
             # Take information of which slices compounds each dataset
 
