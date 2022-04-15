@@ -113,15 +113,18 @@ def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocess
 
         X['train'], X['test'], y['train'], y['test']  = train_test_split(self.X, self.Y, test_size = percentages['test'], random_state=1)
 
-        self.clear_dataset(auto=True) # To free RAM space self.X and self.Y now are empty
+        # To free RAM space self.X and self.Y now are empty
+        self.clear_dataset(auto=True)
         zero_time = float(time.time())
-        while psutil.virtual_memory()[2] < 90:
+        while psutil.virtual_memory()[2] > 90:
+            print('Waiting for memory')
             time.sleep(1)
             if float(time.time())-zero_time > 60:
                 exit()
 
         if val_percentage != 0:
             X['train'], X['val'], y['train'], y['val']  =  train_test_split(X['train'], y['train'], test_size = percentages['val'], random_state=1)
+
     else:
         X = self.X
         y = self.Y
