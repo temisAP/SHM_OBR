@@ -71,7 +71,7 @@ def layer0(data,ref_data,f,lamb=25, mode='same'):
 
     """ Return """
 
-    t = [[spectralshift],crosscorr]
+    t = [[spectralshift],crosscorr,autocorr]
     X = np.array([item for sublist in t for item in sublist])
 
     return X

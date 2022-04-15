@@ -28,18 +28,11 @@ def pre_processing(self,X,y,plot_preprocessing=False,plot_histogram=False):
 
     # Set up scalers
 
-    xx = X['train'][:,0].flatten().reshape(-1, 1)
-    self.scaler_ss = scaler_ss = a_scaler(xx.max(),xx.min())
-
-    xx = X['train'][:,1:2002].flatten().reshape(-1, 1)
-    self.scaler_cc = scaler_cc = a_scaler(xx.max(),xx.min())
-
-    xx = X['train'][:,-400:].flatten().reshape(-1, 1)
-    self.scaler_ac = scaler_ac = a_scaler(xx.max(),xx.min())
+    xx = X['train'].flatten().reshape(-1, 1)
+    self.scalerX = scalerX = a_scaler(xx.max(),xx.min())
 
     xx = y['train'][:,0].flatten().reshape(-1, 1)
     self.scaler_T  = scaler_T  = a_scaler(xx.max(),xx.min())
-
     xx = y['train'][:,1].flatten().reshape(-1, 1)
     self.scaler_E  = scaler_E  = a_scaler(xx.max(),xx.min())
 
@@ -48,11 +41,12 @@ def pre_processing(self,X,y,plot_preprocessing=False,plot_histogram=False):
     for key,val in X.items():
 
         # Transform each sample
-        ss = np.array([scaler_ss.transform(sample) for sample in X[key][:,0]     ])
-        cc = np.array([scaler_cc.transform(sample) for sample in X[key][:,1:2001]])
-        ac = np.array([scaler_ac.transform(sample) for sample in X[key][:,-400:] ])
-        T  = np.array([scaler_T.transform(sample)  for sample in y[key][:,0]     ])
-        E  = np.array([scaler_E.transform(sample)  for sample in y[key][:,1]     ])
+        X[key] = np.array([scalerX.transform(sample) for sample in X[key]])
+
+        T      = np.array([scaler_T.transform(sample)  for sample in y[key][:,0]     ])
+        E      = np.array([scaler_E.transform(sample)  for sample in y[key][:,1]     ])
+        y[key] = np.concatenate((np.transpose(np.array([T])),np.transpose(np.array([E]))),axis=1)
+
 
         # If plot, then plot ss and ac before and after normalization
         if plot_preprocessing:
@@ -77,42 +71,28 @@ def pre_processing(self,X,y,plot_preprocessing=False,plot_histogram=False):
 
                 fig.suptitle(f'Normalization {idx}')
 
-        # Plot histograms of values of ss, cc, ac, T and E
+        # Plot histograms of values of x, T and E
         if plot_histogram:
 
-            fig, axs = plt.subplots(2, 3, constrained_layout=True)
+            fig, axs = plt.subplots(3, 1, constrained_layout=True)
 
-            axs[0,0].hist(ss,bins=20)
-            axs[0,0].set_xlim(-0.5,1.5)
-            axs[0,0].grid()
-            axs[0,0].set_title('ss')
+            axs[0].hist(X[key].flatten().reshape(-1, 1),bins=20)
+            axs[0].set_xlim(-0.5,1.5)
+            axs[0].grid()
+            axs[0].set_title('x')
 
-            axs[0,1].hist(cc.flatten().reshape(-1, 1),bins=20)
-            axs[0,1].set_xlim(-0.5,1.5)
-            axs[0,1].grid()
-            axs[0,1].set_title('cc')
+            axs[1].hist(y[key][:,0],bins=20)
+            axs[1].set_xlim(-0.5,1.5)
+            axs[1].grid()
+            axs[1].set_title('T')
 
-            axs[0,2].hist(ac.flatten().reshape(-1, 1),bins=20)
-            axs[0,2].set_xlim(-0.5,1.5)
-            axs[0,2].grid()
-            axs[0,2].set_title('ac')
-
-            axs[1,0].hist(T,bins=20)
-            axs[1,0].set_xlim(-0.5,1.5)
-            axs[1,0].grid()
-            axs[1,0].set_title('T')
-
-            axs[1,1].hist(E,bins=20)
-            axs[1,1].set_xlim(-0.5,1.5)
-            axs[1,1].grid()
-            axs[1,1].set_title('E')
+            axs[2].hist(y[key][:,1],bins=20)
+            axs[2].set_xlim(-0.5,1.5)
+            axs[2].grid()
+            axs[2].set_title('E')
 
             fig.suptitle(f'Histograms for {key}')
 
         plt.show()
-
-        # Concatenate information
-        X[key] = np.concatenate((np.transpose(np.array([ss])),cc,ac),axis=1)
-        y[key] = np.concatenate((np.transpose(np.array([T])),np.transpose(np.array([E]))),axis=1)
 
     return X,y

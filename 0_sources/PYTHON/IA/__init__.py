@@ -57,7 +57,8 @@ class IA(object):
             self.X  = dict()          # Dataset inputs           for train, test and validation (valid)
             self.Y  = dict()          # Dataset correct outputs  for train, test and validation (valid)
             self.dl = dict()          # Dataloaders              for train, test and validation (valid)
-            self.model_y = splitter() # Model
+            self.model_T = splitter() # Model
+            self.model_E = splitter() # Model
 
     from .load_datasets import load_datasets
     from .pre_processing import pre_processing

@@ -59,7 +59,7 @@ class slices(object):
     from .load import load
 
 
-def obr2slices(self,delta=200,window=1000):
+def obr2slices(self,delta=2000,window=1000):
 
     """
     Creates a slices object full of slices by slicing .obr data contained in self.obrfiles

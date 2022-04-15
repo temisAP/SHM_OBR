@@ -44,4 +44,8 @@ def save_model(self):
 
     path_to = os.path.join(self.path,self.name.replace('.pkl','_model_T.pkl'))
     print(f'Temperature model saved!')
-    torch.save(self.model_y.state_dict(),path_to)
+    torch.save(self.model_T.state_dict(),path_to)
+
+    path_to = os.path.join(self.path,self.name.replace('.pkl','_model_E.pkl'))
+    print(f'Deformation model saved!')
+    torch.save(self.model_E.state_dict(),path_to)
