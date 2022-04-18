@@ -1,3 +1,12 @@
 *.pkl
 *.pyc
 **/*tensorflow_env
+
+*.lock
+*.pkl
+*.amlignore
+*cpython-38.pyc
+*cpython-36.pyc
+*.amltmp
+**/*.ipynb_checkpoints/
+
