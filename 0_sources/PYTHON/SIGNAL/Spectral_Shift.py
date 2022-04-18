@@ -45,9 +45,9 @@ def local_spectral_shift(y1,y2,f,display=False):
     spectralshift_arr = np.linspace(-0.5*n/sr, 0.5*n/sr, n+1)
     spectralshift = spectralshift_arr[np.argmax(corr)]
 
-    if display == True:
+    if display:
 
-        dz = 1.915510401317988e-05
+        dz = 2e-6
         df = DF
         z_window = np.linspace(-len(y1)/2*dz,len(y1)/2*dz,len(y1))
         f_window = np.linspace(f[0],f[-1],len(y1))
@@ -76,8 +76,7 @@ def local_spectral_shift(y1,y2,f,display=False):
 
         plt.show()
 
-    return spectralshift
-    #return -1*spectralshift/np.mean(f)
+    return -1*spectralshift/np.mean(f)
 
 
 def global_spectral_shift(y1,y2,f,delta=200,window=1000,display = False):

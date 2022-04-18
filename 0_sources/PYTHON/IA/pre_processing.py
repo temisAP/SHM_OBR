@@ -25,6 +25,7 @@ def pre_processing(self,X,y,plot_preprocessing=False,plot_histogram=False):
     for key,val in X.items():
         X[key] = np.array(X[key])
         y[key] = np.array(y[key])
+        print(f'{key} size = {len(X[key])}')
 
     # Set up scalers
 

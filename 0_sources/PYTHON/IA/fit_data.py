@@ -1,20 +1,34 @@
-from statistics import mean
-import torch
-import torch.nn as nn
 import time
-from .model import splitter
+from statistics import mean
 import numpy as np
 
-def fit_data(self,num_epochs = 25, lr=1e-7, representation = True, criterion  = nn.MSELoss()):
+import torch
+import torch.nn as nn
+from .model import splitter
+
+from sklearn.model_selection import validation_curve
+from sklearn.model_selection import learning_curve
+
+
+
+def fit_data(self,num_epochs = 25, lr=1e-7, representation = True, criterion  = nn.MSELoss(), cv=2):
 
     print("\nFitting data\n")
 
+    if isinstance(self.model_T, torch.nn.Module):
+        self.model_T, self.model_E = fit_torch_model(self,num_epochs=num_epochs,lr=lr, representation=representation, criterion=criterion)
+    else:
+        self.model_T, self.model_E = fit_sklearn_model(self,representation=representation, cv=cv)
+
+
+def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=nn.MSELoss()):
+
     # Load models
-    device = self.device
-    self.model_T = splitter() # Model for temperature extraction
-    self.model_E = splitter() # Model for deformation extraction
-    model_T  = self.model_T.to(device)
-    model_E  = self.model_E.to(device)
+    device = obj.device
+    obj.model_T = splitter() # Model for temperature extraction
+    obj.model_E = splitter() # Model for deformation extraction
+    model_T  = obj.model_T.to(device)
+    model_E  = obj.model_E.to(device)
 
     # Optimizers
     optimizer_T  = torch.optim.Adam(model_T.parameters(),lr=lr)
@@ -41,7 +55,7 @@ def fit_data(self,num_epochs = 25, lr=1e-7, representation = True, criterion  = 
         model_E.train()
 
         # Evaluation
-        for (x, y) in self.dl['train']:
+        for (x, y) in obj.dl['train']:
 
             # To device
             x = x.to(device)
@@ -74,7 +88,7 @@ def fit_data(self,num_epochs = 25, lr=1e-7, representation = True, criterion  = 
                 T_sum = 0
                 E_sum = 0
 
-                for x, y in self.dl['val']:
+                for x, y in obj.dl['val']:
                     x = x.to(device)
                     y = y.to(device)
                     #forward pass
@@ -117,7 +131,37 @@ def fit_data(self,num_epochs = 25, lr=1e-7, representation = True, criterion  = 
         plt.grid()
         plt.show()
 
-
-    self.model_T = model_T
-    self.model_E = model_E
     return model_T, model_E
+
+
+def fit_sklearn_model(IA_obj,representation=True,cv=3):
+
+    IA_obj.model_T.fit(IA_obj.X['train'], IA_obj.Y['train'][:,0])
+    IA_obj.model_E.fit(IA_obj.X['train'], IA_obj.Y['train'][:,1])
+
+    IA_obj.save_model()
+
+    train_sizes_T, train_scores_T, valid_scores_T = learning_curve(
+            IA_obj.model_T, IA_obj.X['train'], IA_obj.Y['train'][:,0],cv=cv)
+
+    train_sizes_E, train_scores_E, valid_scores_E = learning_curve(
+            IA_obj.model_E, IA_obj.X['train'], IA_obj.Y['train'][:,1],cv=cv)
+
+    if representation:
+        import matplotlib.pyplot as plt
+        import matplotlib
+        cmap = matplotlib.cm.get_cmap('tab10')
+
+        plt.figure()
+        for i in range(int(cv*2)):
+            if i%2 == 0:
+                plt.plot(train_scores_T[i],'-' ,label=f'train scores (T) {i} ({train_sizes_T[i]} elements)',color=cmap(i))
+                plt.plot(valid_scores_T[i],'--',label=f'valid scores (T) {i}',color=cmap(i))
+            else:
+                plt.plot(train_scores_E[i],'-' ,label=f'train scores (E) {i} ({train_sizes_E[i]} elements)',color=cmap(i))
+                plt.plot(valid_scores_E[i],'--',label=f'valid scores (E) {i}',color=cmap(i))
+        plt.legend()
+        plt.grid()
+        plt.show()
+
+    return IA_obj.model_E, IA_obj.model_T

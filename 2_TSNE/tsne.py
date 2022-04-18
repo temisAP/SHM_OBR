@@ -14,7 +14,6 @@ from IA import IA
 
 
 dataset = 'test_1'
-path_to_dataset = f'../../../../Datasets/{dataset}/3_DATASET/dataset.pkl'
 path_to_dataset = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACION/{dataset}/3_DATASET/dataset.pkl'
 
 # %%
