@@ -14,10 +14,10 @@ CM2_obj = DATASETS(path_to_folder)
 #CM2_obj.save()
 
 # %%
-CM2_obj.obr_TE('0_mm_20_grados.obr',['0_mm_30_grados.obr'],delta=200,type='flecha',eps=True)
-CM2_obj.obr_TE('0_mm_20_grados.obr',['12.447_mm_20_grados.obr'],delta=200,type='flecha',eps=True)
+#CM2_obj.obr_TE('0_mm_20_grados.obr',['0_mm_30_grados.obr'],delta=200,type='flecha',eps=True)
+#CM2_obj.obr_TE('0_mm_20_grados.obr',['12.447_mm_20_grados.obr'],delta=200,type='flecha',eps=True)
 
-exit()
+#exit()
 
 
 #CM2_obj.obr_ss('7_mm_22_grados.obr',type='flecha',eps=True)
@@ -27,7 +27,7 @@ exit()
 CM2_obj.save()
 #exit()
 
-CM2_obj.obr2slices()
+CM2_obj.obr2slices(delta=200)
 CM2_obj.save()
 
 # slices = CM2_obj.load_slices()

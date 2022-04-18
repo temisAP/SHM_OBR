@@ -28,28 +28,65 @@ IA_obj.load_datasets([path_to_dataset],val_percentage=0); IA_obj.save()
 
 """ Set models """
 
+
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
+from sklearn.linear_model import SGDRegressor
+from sklearn.svm import SVR
+from sklearn.svm import LinearSVR
+from sklearn.neural_network import MLPRegressor
 
-IA_obj.model_T = KNeighborsRegressor(n_neighbors=10)
-IA_obj.model_E = KNeighborsRegressor(n_neighbors=10)
+models = [
+    KNeighborsRegressor(),
+    GradientBoostingRegressor(),
+    RandomForestRegressor(),
+    KNeighborsClassifier(),
+    GradientBoostingClassifier(),
+    RandomForestClassifier(),
+    LinearRegression(),
+    Ridge(),
+    Lasso(),
+    ElasticNet(),
+    SGDRegressor(),
+    SVR(),
+    LinearSVR(),
+    MLPRegressor()
+]
 
-# %%
+for model in models:
 
-""" Train models """
+    try:
 
-print('*** Training models ***')
+        IA_obj.model_T = model
+        IA_obj.model_E = model
+
+        # %%
+
+        """ Train models """
+
+        print(f'*** Training {model} ***')
 
 
-#IA_obj.fit_data()
+        IA_obj.fit_data(representation=False,save=model)
 
-# %%
+        # %%
 
-""" Evaluate models """
+        """ Evaluate models """
 
-IA_obj.load_model()
-IA_obj.save()
-IA_obj.results()
+        IA_obj.load_model()
+        IA_obj.save()
+        IA_obj.results(representation=False,save=model)
+
+    except Exception as e:
+        print(e)
 
 
 

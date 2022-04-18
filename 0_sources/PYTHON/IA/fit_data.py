@@ -11,14 +11,14 @@ from sklearn.model_selection import learning_curve
 
 
 
-def fit_data(self,num_epochs = 25, lr=1e-7, representation = True, criterion  = nn.MSELoss(), cv=2):
+def fit_data(self,num_epochs = 25, lr=1e-7, representation = True, criterion  = nn.MSELoss(),save=False,cv=2):
 
     print("\nFitting data\n")
 
     if isinstance(self.model_T, torch.nn.Module):
         self.model_T, self.model_E = fit_torch_model(self,num_epochs=num_epochs,lr=lr, representation=representation, criterion=criterion)
     else:
-        self.model_T, self.model_E = fit_sklearn_model(self,representation=representation, cv=cv)
+        self.model_T, self.model_E = fit_sklearn_model(self, representation=representation, save=save, cv=cv)
 
 
 def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=nn.MSELoss()):
@@ -134,7 +134,7 @@ def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=n
     return model_T, model_E
 
 
-def fit_sklearn_model(IA_obj,representation=True,cv=3):
+def fit_sklearn_model(IA_obj,representation=True,save=False,cv=3):
 
     IA_obj.model_T.fit(IA_obj.X['train'], IA_obj.Y['train'][:,0])
     IA_obj.model_E.fit(IA_obj.X['train'], IA_obj.Y['train'][:,1])
@@ -147,7 +147,7 @@ def fit_sklearn_model(IA_obj,representation=True,cv=3):
     train_sizes_E, train_scores_E, valid_scores_E = learning_curve(
             IA_obj.model_E, IA_obj.X['train'], IA_obj.Y['train'][:,1],cv=cv)
 
-    if representation:
+    if representation or (not save == False):
         import matplotlib.pyplot as plt
         import matplotlib
         cmap = matplotlib.cm.get_cmap('tab10')
@@ -162,6 +162,7 @@ def fit_sklearn_model(IA_obj,representation=True,cv=3):
                 plt.plot(valid_scores_E[i],'--',label=f'valid scores (E) {i}',color=cmap(i))
         plt.legend()
         plt.grid()
-        plt.show()
+        plt.show() if representation else False
+        plt.savefig(f'{save}_training.png') if not save == False else False
 
     return IA_obj.model_E, IA_obj.model_T

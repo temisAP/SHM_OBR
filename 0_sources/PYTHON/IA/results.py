@@ -2,7 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-def results(self,histograms=True,confusion=True,layers=False):
+def results(self,histograms=True,confusion=True,layers=False,representation=True,save=False):
 
 
     print('\nTesting Neural Network')
@@ -77,13 +77,16 @@ def results(self,histograms=True,confusion=True,layers=False):
         plt.hist(e_T,bins=20)
         plt.grid()
         print(f'Error absoluto medio Temperatura: {sum(abs(e_T))/len(e_T):.4f} K ')
+        plt.savefig(f'{save}_histogramT.png') if not save == False else False
 
         plt.figure()
         plt.title(f'Error absoluto medio Deformación: {sum(abs(e_E))/len(e_E):.4f} micro')
         plt.grid()
         plt.hist(e_E,bins=20)
         print(f'Error absoluto medio Deformación: {sum(abs(e_E))/len(e_E):.4f} micro')
-        plt.show()
+        plt.savefig(f'{save}_histogramE.png') if not save == False else False
+
+        plt.show() if representation else False
 
     if confusion:
 
@@ -98,6 +101,7 @@ def results(self,histograms=True,confusion=True,layers=False):
         plt.xlabel(r'$\Delta T [K]$:'+'target')
         plt.ylabel(r'$\Delta T [K]$:'+'prediction')
         plt.grid()
+        plt.savefig(f'{save}_confusionT.png') if not save == False else False
 
         plt.figure()
         plt.title('Confusion matrix: Deformation')
@@ -107,11 +111,12 @@ def results(self,histograms=True,confusion=True,layers=False):
         plt.plot(E_target, np.array(linear_regression(E_target,*popt)), color = 'tab:orange',
                  label= f'y = {popt[0]:.2f} x +{popt[1]:.2f} | r = {r_squared:.2f}')
 
-        plt.xlabel(r'$\Delta \: \mu varepsilon$:'+'target')
-        plt.ylabel(r'$\Delta \: \mu varepsilon$:'+'prediction')
+        plt.xlabel(r'$\Delta \: \mu \varepsilon$:'+'target')
+        plt.ylabel(r'$\Delta \: \mu \varepsilon$:'+'prediction')
         plt.grid()
+        plt.savefig(f'{save}_confusionE.png') if not save == False else False
 
-        plt.show()
+        plt.show() if representation else False
 
     if layers:
         print('Under construction')
