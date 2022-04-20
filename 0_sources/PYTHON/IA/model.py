@@ -3,29 +3,25 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-class Compressor(nn.Module):
-    """ Compressor for signal  """
-    def __init__(self,input_dim,output_dim):
+
+class Linear(nn.Module):
+    """ Linear compressor/expansor """
+    def __init__(self,input_dim,output_dim,N):
         super().__init__()
         # Dimensions
         self.input_dim = input_dim
         self.output_dim = output_dim
-        N = 20
-        dims = np.linspace(input_dim,output_dim,N+1,dtype = np.int32)
+        dimensions = np.linspace(input_dim,output_dim,N+1,dtype = np.int32)
         # Layer secuence
         self.FC = nn.Sequential()
-        for dim in dims:
-            nn.Linear(dim[0],dim[1]),
-            nn.Tanh(),
-            #nn.Dropout(p=0.2),
-            nn.Linear(dim[1],dim[2]),
-            nn.Tanh(),
-            #nn.Dropout(p=0.2),
-            nn.Linear(dim[2],dim[3]),
-            nn.Tanh()
-    def forward(self, x):
-        x = self.FC(x)
-        return x
+        for i in range(N):
+            self.FC.add_module("Linear"+str(i),nn.Linear(dimensions[i],dimensions[i+1]))
+            self.FC.add_module("BatchNorm"+str(i),nn.BatchNorm1d(dimensions[i+1]))
+            self.FC.add_module("Tanh"+str(i),nn.Tanh())
+        self.FC.add_module("Linear"+str(N),nn.Linear(dimensions[-1],output_dim))
+        self.FC.add_module("Tanh"+str(N),nn.Tanh())
+    def forward(self,x):
+        return self.FC(x)
 
 
 class splitter(nn.Module):
@@ -38,10 +34,10 @@ class splitter(nn.Module):
         super(splitter, self).__init__()
 
         # Compressor layers
-        self.C = Compressor(16,4)
+        self.C = Linear(16,4,5)
 
         # Regressor layers
-        self.R   = Compressor(4,1)
+        self.R = Linear(4,1,5)
 
     def forward(self, x):
         # Batch size = x[bs,:]
@@ -54,8 +50,3 @@ class splitter(nn.Module):
         out = self.R(y)
 
         return out
-
-def init_weights(m):
-    if isinstance(m, nn.Linear):
-        torch.nn.init.xavier_uniform_(m.weight)
-        m.bias.data.fill_(0.01)

@@ -17,6 +17,6 @@ IA_obj = IA('./models',name='prueba')
 #IA_obj.load_datasets([path_to_dataset1],plot_histogram=True,plot_preprocessing=False); IA_obj.save()
 IA_obj.load_datasets([path_to_dataset]); IA_obj.save()
 
-IA_obj.fit_data(15,lr=1e-7); IA_obj.save(); IA_obj.save_model()
+#IA_obj.fit_data(30,lr=1.1e-4); IA_obj.save(); IA_obj.save_model()
 
 IA_obj.results(); IA_obj.save(); IA_obj.save_model()

@@ -94,9 +94,11 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
         plt.title('Confusion matrix: Temperature')
         plt.scatter(T_target,T_predict,label='Value')
 
+        """
         popt,pcov,r_squared = accuracy(T_target,T_predict)
         plt.plot(T_target, np.array(linear_regression(T_target,*popt)), color = 'tab:orange',
                  label= f'y = {popt[0]:.2f} x +{popt[1]:.2f} | r = {r_squared:.2f}')
+        """
 
         plt.xlabel(r'$\Delta T [K]$:'+'target')
         plt.ylabel(r'$\Delta T [K]$:'+'prediction')
@@ -107,9 +109,11 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
         plt.title('Confusion matrix: Deformation')
         plt.scatter(E_target,E_predict)
 
+        """
         popt,pcov,r_squared = accuracy(E_target,E_predict)
         plt.plot(E_target, np.array(linear_regression(E_target,*popt)), color = 'tab:orange',
                  label= f'y = {popt[0]:.2f} x +{popt[1]:.2f} | r = {r_squared:.2f}')
+        """
 
         plt.xlabel(r'$\Delta \: \mu \varepsilon$:'+'target')
         plt.ylabel(r'$\Delta \: \mu \varepsilon$:'+'prediction')
