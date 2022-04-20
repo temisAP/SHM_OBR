@@ -49,7 +49,7 @@ def layer0(data,ref_data,z,f,lamb=25, mode='same'):
     lr = 1/(DZ/n)       # Lengh ratio
 
     frequency_arr = np.linspace(-0.5*n/sr, 0.5*n/sr, n+1)     #[GHz]
-    timeshift_arr = np.linspace(-0.5*n/sr, 0.5*n/sr, n+1)     #[mm]
+    timeshift_arr = np.linspace(-0.5*n/lr, 0.5*n/lr, n+1)     #[mm]
 
     """ ******** Cross correlation (time) ******** """
 
@@ -64,7 +64,7 @@ def layer0(data,ref_data,z,f,lamb=25, mode='same'):
 
     timeshift = timeshift_arr[np.argmax(corr)]
 
-    X.extend(timeshift, corr[np.argmax(corr)])
+    X.extend([timeshift, corr[np.argmax(corr)]])    ############################
 
     # For reference data
 
@@ -77,7 +77,7 @@ def layer0(data,ref_data,z,f,lamb=25, mode='same'):
 
     timeshift = timeshift_arr[np.argmax(corr)]
 
-    X.extend(timeshift, corr[np.argmax(corr)])
+    X.extend([timeshift, corr[np.argmax(corr)]])    ############################
 
 
     """ ******** Cross correlation (frequency) ******** """
@@ -86,11 +86,12 @@ def layer0(data,ref_data,z,f,lamb=25, mode='same'):
     Y2 = np.absolute(np.fft.fft(P2))
     Y1 = (Y1 - np.mean(Y1)) / (np.std(Y1) * len(Y1))
     Y2 = (Y2 - np.mean(Y2)) / (np.std(Y2))
+    corr = np.correlate(Y1, Y2, mode='same')
 
     spectralshift = frequency_arr[np.argmax(corr)]
 
 
-    X.extend(spectralshift, corr[np.argmax(corr)])
+    X.extend([spectralshift, corr[np.argmax(corr)]]) ###########################
 
     """ ******** Autocorrelation comparisson ******** """
 
@@ -102,9 +103,50 @@ def layer0(data,ref_data,z,f,lamb=25, mode='same'):
     autocorr2 = np.correlate(y, y, mode=mode)/np.var(y)/len(y)
     autocorr = np.absolute(autocorr1-autocorr2)
 
-    X.extend(timeshift_arr[np.argmax(autocorr)], autocorr[np.argmax(autocorr)])
-    X.extend(timeshift_arr[np.argmin(autocorr)], autocorr[np.argmin(autocorr)])
-    X.extend(timeshift_arr[int(len(autocorr)/2)],reference_value)
+    # Soften signal
+    import statsmodels.api as sm
+    seasonal,trend = np.array(sm.tsa.filters.hpfilter(autocorr, lamb=25))
+    autocorr = trend
 
+    autocorr = autocorr[int(len(autocorr)/2):]
+    z = np.linspace(0,z[-1],len(autocorr))
+
+    # Find peaks and valleys
+    from scipy.signal import find_peaks
+
+    peaks, _ = find_peaks(autocorr, height=autocorr[0])
+    try:
+        peak = peaks[0]
+    except:
+        peak = 0
+
+    valleys, _ = find_peaks(-autocorr, height=-autocorr[0])
+    try:
+        valley = valleys[0]
+    except:
+        valley = 0
+
+    X.extend(   [ z[0],                    autocorr[0]                   ]) # Midpoint
+    X.extend(   [ z[peak],                 autocorr[peak]                ]) # First peak
+    X.extend(   [ z[valley],               autocorr[valley]              ]) # First valley
+    X.extend(   [ z[np.argmax(autocorr)],  autocorr[np.argmax(autocorr)] ]) # Maximum value
+    X.extend(   [ z[np.argmin(autocorr)],  autocorr[np.argmin(autocorr)] ]) # Minimum value
+
+    """
+
+    import matplotlib.pyplot as plt
+
+    plt.figure()
+    plt.plot(z, autocorr)
+    plt.plot(z[peak],autocorr[peak],'o',label = 'first peak')
+    plt.plot(z[valley],autocorr[valley],'o',label = 'first valley')
+    plt.plot(z[np.argmax(autocorr)],  autocorr[np.argmax(autocorr)], "xr", label='Maximum')
+    plt.plot(z[np.argmin(autocorr)],  autocorr[np.argmin(autocorr)], "vg", label='Minimum')
+    plt.plot(z[0], autocorr[0], 'o', label='Midpoint')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    """
 
     return np.array(X)

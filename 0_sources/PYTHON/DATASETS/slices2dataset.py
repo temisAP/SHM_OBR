@@ -201,7 +201,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
                 'delta_EPS' : delta_EPS,
                 'parent1'   : parent1,
                 'parent2'   : parent2,
-                'spectralshift' : X[0],
+                'spectralshift' : X[4],
                 'x'         : row['x'],
                 'd_flecha'  : delta_flecha}
             else:

@@ -23,7 +23,7 @@ class the_dataset(Dataset):
         return self.x[idx,:], self.y[idx,:]
 
 
-def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocessing=True, data_loaders = False, test_percentage=20,val_percentage=20, plot_preprocessing=False,plot_histogram=False):
+def load_datasets(self,datasets=None,ds_percentages=100,split = True, preprocessing=True, data_loaders = True, test_percentage=20,val_percentage=20, plot_preprocessing=False,plot_histogram=False):
     """ Function to load data from datasets
 
         :param: datasets(list of strings): path of datasets to load -> If None a GUI to select will be launched

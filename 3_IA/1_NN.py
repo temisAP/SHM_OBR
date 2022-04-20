@@ -21,7 +21,7 @@ path_to_dataset = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACI
 
 IA_obj = IA('./models',name='modelos')
 
-IA_obj.load_datasets([path_to_dataset],val_percentage=0); IA_obj.save()
+IA_obj.load_datasets([path_to_dataset],val_percentage=0,plot_histogram=True); IA_obj.save()
 #IA_obj.load_datasets([path_to_dataset1,path_to_dataset2],plot_histogram=True,plot_preprocessing=False); IA_obj.save()
 
 # %%
@@ -46,7 +46,7 @@ from sklearn.neural_network import MLPRegressor
 
 models = [
     KNeighborsRegressor(),
-    GradientBoostingRegressor(),
+    #GradientBoostingRegressor(),
     RandomForestRegressor(),
     KNeighborsClassifier(),
     GradientBoostingClassifier(),

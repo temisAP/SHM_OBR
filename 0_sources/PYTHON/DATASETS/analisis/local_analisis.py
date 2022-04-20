@@ -288,7 +288,7 @@ def analysis_10(self,files,position):
     print('\nCross correlation (frequency)')
     print(spectralshift, corr[np.argmax(corr)])
 
-    """ ******** Autocorrelation correlation (frequency) ******** """
+    """ ******** Autocorrelation comparisson ******** """
     mode = 'same'
     y = P1
     autocorr1 = np.correlate(y, y, mode=mode)/np.var(y)/len(y)
@@ -296,18 +296,34 @@ def analysis_10(self,files,position):
     autocorr2 = np.correlate(y, y, mode=mode)/np.var(y)/len(y)
     autocorr = np.absolute(autocorr1-autocorr2)
 
+    import statsmodels.api as sm
+
+    seasonal,trend = np.array(sm.tsa.filters.hpfilter(autocorr, lamb=25))
+    autocorr = trend
+
+    autocorr = autocorr[int(len(autocorr)/2):]
+    z = np.linspace(0,z[-1],len(autocorr))
+
+    from scipy.signal import find_peaks
+    peaks, _ = find_peaks(autocorr, height=autocorr[0])
+    peak = peaks[0]
+    valleys, _ = find_peaks(-autocorr, height=-autocorr[0])
+    valley = valleys[0]
+
     # Plots
     plt.figure()
-    plt.plot(z[:-1], autocorr)
-    plt.plot(timeshift_arr[np.argmax(autocorr)-1], autocorr[np.argmax(autocorr)], "xr", label='Maximum')
-    plt.plot(timeshift_arr[np.argmin(autocorr)-1], autocorr[np.argmin(autocorr)], "vg", label='Minimum')
-    plt.plot(timeshift_arr[int(len(autocorr)/2)],reference_value,'o',label='Midpoint')
-
+    plt.plot(z, autocorr)
+    plt.plot(z[peak],autocorr[peak],'o',label = 'first peak')
+    plt.plot(z[valley],autocorr[valley],'o',label = 'first valley')
+    plt.plot(z[np.argmax(autocorr)],  autocorr[np.argmax(autocorr)], "xr", label='Maximum')
+    plt.plot(z[np.argmin(autocorr)],  autocorr[np.argmin(autocorr)], "vg", label='Minimum')
+    plt.plot(z[0], autocorr[0], 'o', label='Midpoint')
+    plt.legend()
     plt.grid()
 
     print('\nAutocorrelation comparisson')
     print('Maximum: ',timeshift_arr[np.argmax(autocorr)-1], autocorr[np.argmax(autocorr)])
     print('Minimum: ',timeshift_arr[np.argmin(autocorr)-1], autocorr[np.argmin(autocorr)])
-    print('Midpoint:',timeshift_arr[int(len(autocorr)/2)],reference_value)
+    print('Midpoint:',timeshift_arr[int(len(autocorr)/2)],  autocorr[int(len(autocorr)/2)])
 
     plt.show()

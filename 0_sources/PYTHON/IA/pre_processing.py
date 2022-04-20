@@ -47,17 +47,14 @@ def pre_processing(self,X,y,plot_preprocessing=False,plot_histogram=False):
         # Plot histograms of values of ss, cc, ac, T and E
         if plot_histogram:
 
-            fig, axs = plt.subplots(4, 3, constrained_layout=True)
+            fig, axs = plt.subplots(4, 4, constrained_layout=True)
 
-            print(idx for idx,val in enumerate(np.transpose(X)))
+            for idx,val in enumerate(np.transpose(X[key])):
 
-            for idx,val in enumerate(np.transpose(X)):
-
-                axs[idx//3,idx%3].hist(val,bins=20)
-                axs[idx//3,idx%3].set_xlim(-0.5,1.5)
-                axs[idx//3,idx%3].grid()
-                axs[idx//3,idx%3].set_title(idx)
-
+                axs[idx//4,idx%4].hist(val,bins=20)
+                axs[idx//4,idx%4].set_xlim(-0.5,1.5)
+                axs[idx//4,idx%4].grid()
+                axs[idx//4,idx%4].set_title(idx)
 
             fig.suptitle(f'Histograms for {key}: inputs')
 

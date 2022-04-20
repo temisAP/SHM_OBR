@@ -15,6 +15,10 @@ def fit_data(self,num_epochs = 25, lr=1e-7, representation = True, criterion  = 
 
     print("\nFitting data\n")
 
+    if not hasattr(self, "model_T"):
+        self.model_T = splitter()
+        self.model_E = splitter()
+
     if isinstance(self.model_T, torch.nn.Module):
         self.model_T, self.model_E = fit_torch_model(self,num_epochs=num_epochs,lr=lr, representation=representation, criterion=criterion)
     else:

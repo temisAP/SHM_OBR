@@ -5,6 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 
 import sys
 import os
@@ -25,7 +26,6 @@ IA_obj.save()
 
 #IA_obj.load_datasets(path_to_dataset,plot_histogram=True,plot_preprocessing=True)
 IA_obj.load_datasets(path_to_dataset,split=False, preprocessing=False)
-IA_obj.save()
 
 # %%
 
@@ -35,7 +35,7 @@ IA_obj.save()
 
 """ Get SS """
 
-ss    = np.array([lst[0] for lst in IA_obj.X])
+ss    = np.array([lst[15] for lst in IA_obj.X]) # 0-15
 temps = np.array([lst[0] for lst in IA_obj.Y])
 defs  = np.array([lst[1] for lst in IA_obj.Y])
 
@@ -68,7 +68,8 @@ plt.show()
 """ TSNE """
 
 # Fit the model
-model = TSNE(n_components=2, perplexity=30.0, early_exaggeration=12.0,learning_rate=100)
+#model = TSNE(n_components=2, perplexity=50.0, early_exaggeration=15.0,learning_rate=80)
+model = PCA(n_components=2)
 np.set_printoptions(suppress=True)
 Y =  model.fit_transform(IA_obj.X)
 

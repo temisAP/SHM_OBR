@@ -20,6 +20,8 @@ class a_slice(object):
         slice_obj.flecha       = 0
         slice_obj.z            = 0
         slice_obj.x            = 0
+        slice_obj.z_0          = 0
+        slice_obj.z_end        = 0
         slice_obj.f_0          = 0
         slice_obj.f_end        = 0
         slice_obj.delta        = 0
@@ -181,6 +183,9 @@ def gen_slices(self,obrfile,slices_obj,delta=2000,window=1000):
             # Current ID
             ID += 1
 
+            # Lenght
+            z = obrfile.z[i-window:i+window]
+
             # Update new information
             new_row = {
             'ID'                : ID,
@@ -188,6 +193,8 @@ def gen_slices(self,obrfile,slices_obj,delta=2000,window=1000):
             'flecha'            : flecha,               # mm
             'z'                 : obrfile.z[i],         # m
             'x'                 : x[idx],               # mm
+            'z_0'               : z[0] * 1e3,           # mm
+            'z_end'             : z[-1]* 1e3,           # mm
             'f_0'               : obrfile.f[0],         # GHz
             'f_end'             : obrfile.f[-1],        # GHz
             'delta'             : delta,
