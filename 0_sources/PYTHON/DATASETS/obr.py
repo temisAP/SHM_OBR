@@ -195,9 +195,8 @@ def obr_ss(self,REF,files=None,delta=2000,window=1000,type=None,eps=False):
 
     """ Get filenames to iterate """
 
-    files = list(self.obrfiles.keys()) if files == None else [item for sublist in [files,REF] for item in sublist]
+    files = list(self.obrfiles.keys()) if files == None else files
     Ts = list()
-    files.remove(REF)
     f = np.linspace(self.obrfiles[REF].f[0],self.obrfiles[REF].f[-1],3)
 
 
@@ -301,9 +300,9 @@ def obr_TE(self,REF,files=None,delta=2000,window=1000,type=None,eps=False):
 
     """ Get filenames to iterate """
 
-    files = list(self.obrfiles.keys()) if files == None else [item for sublist in [files,[REF]] for item in sublist]
+    files = list(self.obrfiles.keys()) if files == None else files
     Ts = list()
-    files.remove(REF)
+    files.remove(REF) if REF in files else False
     f = np.linspace(self.obrfiles[REF].f[0],self.obrfiles[REF].f[-1],3)
 
 
@@ -381,12 +380,13 @@ def obr_TE(self,REF,files=None,delta=2000,window=1000,type=None,eps=False):
 def local_analysis(self,files,position):
     """ Function to analize signal in a certain point """
 
-    from .analisis.local_analisis import analysis_0, analysis_1, analysis_2, analysis_3
+    from .analisis.local_analisis import analysis_0, analysis_1, analysis_2, analysis_3, analysis_10
 
-    analysis_0(self,files,position)
+    #analysis_0(self,files,position)
     #analysis_1(self,files,position)
     #analysis_2(self,files,position)
     #analysis_3(self,files,position)
+    analysis_10(self,files,position)
 
 def find_OBR(path):
     """ Function to find all .obr files from a folder

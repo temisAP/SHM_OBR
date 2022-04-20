@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../0_sources/PYTHON'))
-from utils import get_status
+from UTILS.utils import get_status
 
 def temperature_plot(x,y,lbls,REF):
     """ This functions create a line plot for several datasets,

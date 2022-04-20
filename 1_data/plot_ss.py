@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../0_sources/PYTHON'))
-from SPECTRAL_SHIFT.read_obr import multi_read_obr
-from SPECTRAL_SHIFT.Spectral_Shift import global_spectral_shift
-from utils import get_all_files, find_index
+from UTILS.read_obr import multi_read_obr
+from SIGNAL.Spectral_Shift import global_spectral_shift
+from UTILS.utils import get_all_files, find_index
 from PLOTS.plots import temperature_plot
 
 

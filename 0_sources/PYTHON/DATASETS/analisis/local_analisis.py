@@ -16,7 +16,6 @@ from SIGNAL.chirplet import chirplet
 from SIGNAL.STFT import stft
 from SIGNAL.spectrogram import spectrogram
 
-
 def analysis_0(self,files,position):
 
     # Compute chirplets
@@ -209,5 +208,106 @@ def analysis_3(self,files,position):
             jdx += 1
         idx += 1
 
+
+    plt.show()
+
+
+def analysis_10(self,files,position):
+
+    # Get data
+    P1 = self.obrfiles[files[1]].Data[0]
+    S1 = self.obrfiles[files[1]].Data[1]
+    P2 = self.obrfiles[files[0]].Data[0]
+    z = self.obrfiles[files[0]].z
+    f = self.obrfiles[files[0]].f
+    i = find_index(z,position)
+
+    window = 1000   # window size (points)
+
+    # Crop data
+
+    P1 = P1[i-window:i+window]
+    P2 = P2[i-window:i+window]
+    S1 = S1[i-window:i+window]
+    z = z[i-window:i+window]
+
+    DF = f[-1]-f[0]     # Frequency range
+    n = len(P1)         # Sample lenght
+    sr = 1/(DF/n)       # Scan ratio
+
+    DZ = z[-1]-z[0]     # lenght range
+    n = len(P1)         # Sample lenght
+    lr = 1/(DZ/n)       # Lengh ratio
+
+    f = np.linspace(-0.5*n/sr, 0.5*n/sr, n+1)
+    z = np.linspace(-0.5*n/sr, 0.5*n/sr, n+1)
+
+    spectralshift_arr = np.linspace(-0.5*n/sr, 0.5*n/sr, n+1)
+    timeshift_arr = np.linspace(-0.5*z[-1], 0.5*z[-1],n+1)
+
+    """ ******** Cross correlation (time) ******** """
+
+    Y1 = np.absolute(np.array(P1))
+    Y2 = np.absolute(np.array(S1))
+    print('error') if Y1 is P1 else False
+    Y1 = (Y1 - np.mean(Y1)) / (np.std(Y1) * len(Y1))
+    Y2 = (Y2 - np.mean(Y2)) / (np.std(Y2))
+    corr = np.correlate(Y1, Y2, mode='same')
+
+    timeshift = timeshift_arr[np.argmax(corr)]
+
+    # Plot
+    plt.figure()
+    plt.plot(z[:-1],corr)
+    plt.xlabel('z[m]')
+    plt.ylabel('Cross correlation (time)')
+    plt.plot(timeshift, corr[np.argmax(corr)], "xr", label='Time shift')
+    plt.grid()
+
+    print('\nCross correlation (time)')
+    print(timeshift, corr[np.argmax(corr)])
+
+    """ ******** Cross correlation (frequency) ******** """
+
+    Y1 = np.absolute(np.fft.fft(P1))
+    Y2 = np.absolute(np.fft.fft(P2))
+    Y1 = (Y1 - np.mean(Y1)) / (np.std(Y1) * len(Y1))
+    Y2 = (Y2 - np.mean(Y2)) / (np.std(Y2))
+    corr = np.correlate(Y1, Y2, mode='same')
+
+    spectralshift = spectralshift_arr[np.argmax(corr)]
+
+    # Plot
+    plt.figure()
+    plt.plot(f[:-1],corr)
+    plt.xlabel(r'$\nu$[GHz]')
+    plt.ylabel('Cross correlation (frequency)')
+    plt.plot(spectralshift, corr[np.argmax(corr)], "xr", label='Spectral shift')
+    plt.grid()
+
+    print('\nCross correlation (frequency)')
+    print(spectralshift, corr[np.argmax(corr)])
+
+    """ ******** Autocorrelation correlation (frequency) ******** """
+    mode = 'same'
+    y = P1
+    autocorr1 = np.correlate(y, y, mode=mode)/np.var(y)/len(y)
+    y = P2
+    autocorr2 = np.correlate(y, y, mode=mode)/np.var(y)/len(y)
+    autocorr = np.absolute(autocorr1-autocorr2)
+
+    # Plots
+    plt.figure()
+    plt.plot(z[:-1], autocorr)
+    plt.plot(timeshift_arr[np.argmax(autocorr)-1], autocorr[np.argmax(autocorr)], "xr", label='Maximum')
+    plt.plot(timeshift_arr[np.argmin(autocorr)-1], autocorr[np.argmin(autocorr)], "vg", label='Minimum')
+    plt.plot(timeshift_arr[int(len(autocorr)/2)],reference_value,'o',label='Midpoint')
+
+    plt.grid()
+
+    print('\nAutocorrelation comparisson')
+    print('Maximum: ',timeshift_arr[np.argmax(autocorr)-1], autocorr[np.argmax(autocorr)])
+    print('Minimum: ',timeshift_arr[np.argmin(autocorr)-1], autocorr[np.argmin(autocorr)])
+    print('Midpoint:',timeshift_arr[int(len(autocorr)/2)],reference_value)
 
     plt.show()

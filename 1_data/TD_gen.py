@@ -20,12 +20,12 @@ CM2_obj = DATASETS(path_to_folder)
 #exit()
 
 
-#CM2_obj.obr_ss('7_mm_22_grados.obr',type='flecha',eps=True)
+CM2_obj.obr_ss('0_mm_20_grados.obr',['0_mm_20_grados.obr'],delta=200)
 #CM2_obj.obr_ss('0_mm_20_grados.obr',type='flecha',eps=False)
 #CM2_obj.computeOBR()
 #exit()
 CM2_obj.save()
-#exit()
+exit()
 
 CM2_obj.obr2slices(delta=200)
 CM2_obj.save()

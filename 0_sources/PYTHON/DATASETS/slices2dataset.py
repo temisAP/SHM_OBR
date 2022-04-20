@@ -158,6 +158,8 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
 
             # Create frecuency array
             f = np.linspace(row['f_0'],row['f_end'],3)
+            # Create length array
+            z = np.linspace(row['z_0'],row['z_end'],3)
 
             # Access signal data from slices, preprocess it and then save in dataset as input for NN
             data        = [[0],[0]]
@@ -169,7 +171,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
             ref_data[0] = slices_obj.slices[ref_row['ID']].P
             ref_data[1] = slices_obj.slices[ref_row['ID']].S
 
-            X = layer0(data,ref_data,f)
+            X = layer0(data,ref_data,z,f)
             dataset_obj.X.append(X)
 
             # Access status information of the slice to create outputs for NN
