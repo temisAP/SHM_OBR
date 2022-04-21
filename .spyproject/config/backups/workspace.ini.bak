@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['3_IA/1_NN.py', '0_sources/PYTHON/IA/fit_data.py']
+recent_files = ['3_IA/0_NN.py', '0_sources/PYTHON/IA/results.py']
 
 [main]
 version = 0.2.0

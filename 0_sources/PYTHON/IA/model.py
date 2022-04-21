@@ -19,7 +19,6 @@ class Linear(nn.Module):
             self.FC.add_module("BatchNorm"+str(i),nn.BatchNorm1d(dimensions[i+1]))
             self.FC.add_module("Tanh"+str(i),nn.Tanh())
         self.FC.add_module("Linear"+str(N),nn.Linear(dimensions[-1],output_dim))
-        self.FC.add_module("Tanh"+str(N),nn.Tanh())
     def forward(self,x):
         return self.FC(x)
 
@@ -34,10 +33,10 @@ class splitter(nn.Module):
         super(splitter, self).__init__()
 
         # Compressor layers
-        self.C = Linear(16,4,5)
+        self.C = Linear(16,1000,7)
 
         # Regressor layers
-        self.R = Linear(4,1,5)
+        self.R = Linear(1000,1,8)
 
     def forward(self, x):
         # Batch size = x[bs,:]

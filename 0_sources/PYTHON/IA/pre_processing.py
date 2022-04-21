@@ -28,21 +28,29 @@ def pre_processing(self,X,y,plot_preprocessing=False,plot_histogram=False):
         print(f'{key} size = {len(X[key])}')
 
     # Set up scalers
+    self.scaler = scaler = dict()
 
+    for i in range(16):
+        xx = X['train'][:,i].flatten().reshape(-1, 1)
+        self.scaler[str(i)]  = scaler[str(i)]  = a_scaler(xx.max(),xx.min())
 
     xx = y['train'][:,0].flatten().reshape(-1, 1)
-    self.scaler_T  = scaler_T  = a_scaler(xx.max(),xx.min())
+    self.scaler['T']  = scaler['T']  = a_scaler(xx.max(),xx.min())
 
     xx = y['train'][:,1].flatten().reshape(-1, 1)
-    self.scaler_E  = scaler_E  = a_scaler(xx.max(),xx.min())
+    self.scaler['E']  = scaler['E']  = a_scaler(xx.max(),xx.min())
 
     # Transform each sample
 
     for key,val in X.items():
 
         # Transform each sample
-        T  = np.array([scaler_T.transform(sample)  for sample in y[key][:,0]     ])
-        E  = np.array([scaler_E.transform(sample)  for sample in y[key][:,1]     ])
+
+        for i in range(16):
+            X[key][:,i] = np.array([scaler[str(i)].transform(sample)  for sample in X[key][:,i] ])
+
+        T  = np.array([scaler['T'].transform(sample)  for sample in y[key][:,0]     ])
+        E  = np.array([scaler['E'].transform(sample)  for sample in y[key][:,1]     ])
 
         # Plot histograms of values of ss, cc, ac, T and E
         if plot_histogram:

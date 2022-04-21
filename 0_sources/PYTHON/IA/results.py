@@ -32,18 +32,18 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
                 x = torch.from_numpy( np.array([self.X['test'][i]]) ).float()
                 y = self.Y['test'][i]
                 # Inference
-                T = self.model_T(x.to(self.device))
-                E = self.model_E(x.to(self.device))
+                T = self.model_T(x.to(self.device))[0]
+                E = self.model_E(x.to(self.device))[0]
                 # Error
                 if histograms:
-                    e_T[i] = self.scaler_T.inverse_transform(T) - self.scaler_T.inverse_transform(y[0])
-                    e_E[i] = self.scaler_E.inverse_transform(E) - self.scaler_T.inverse_transform(y[1])
+                    e_T[i] = self.scaler['T'].inverse_transform(T) - self.scaler['T'].inverse_transform(y[0])
+                    e_E[i] = self.scaler['E'].inverse_transform(E) - self.scaler['T'].inverse_transform(y[1])
                 # Confusion
                 if confusion:
-                    T_predict.append(   self.scaler_T.inverse_transform(    T.cpu().detach().numpy()    ))
-                    T_target.append(    self.scaler_T.inverse_transform(    y[0]                        ))
-                    E_predict.append(   self.scaler_E.inverse_transform(    E.cpu().detach().numpy()    ))
-                    E_target.append(    self.scaler_E.inverse_transform(    y[1]                        ))
+                    T_predict.append(   float(self.scaler['T'].inverse_transform(    T.cpu().detach().numpy()  )))
+                    T_target.append(    float(self.scaler['T'].inverse_transform(    y[0]              )))
+                    E_predict.append(   float(self.scaler['E'].inverse_transform(    E.cpu().detach().numpy()  )))
+                    E_target.append(    float(self.scaler['E'].inverse_transform(    y[1]              )))
     else:
 
         i = 0
@@ -55,14 +55,14 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
             E = self.model_E.predict(x.reshape(1, -1))
             # Error
             if histograms:
-                e_T[i] = self.scaler_T.inverse_transform(T) - self.scaler_T.inverse_transform(y[0])
-                e_E[i] = self.scaler_E.inverse_transform(E) - self.scaler_T.inverse_transform(y[1])
+                e_T[i] = self.scaler['T'].inverse_transform(T) - self.scaler['T'].inverse_transform(y[0])
+                e_E[i] = self.scaler['E'].inverse_transform(E) - self.scaler['T'].inverse_transform(y[1])
             # Confusion
             if confusion:
-                T_predict.append(   float(self.scaler_T.inverse_transform(    T         )))
-                T_target.append(    float(self.scaler_T.inverse_transform(    y[0]      )))
-                E_predict.append(   float(self.scaler_E.inverse_transform(    E         )))
-                E_target.append(    float(self.scaler_E.inverse_transform(    y[1]      )))
+                T_predict.append(   float(self.scaler['T'].inverse_transform(    T         )))
+                T_target.append(    float(self.scaler['T'].inverse_transform(    y[0]      )))
+                E_predict.append(   float(self.scaler['E'].inverse_transform(    E         )))
+                E_target.append(    float(self.scaler['E'].inverse_transform(    y[1]      )))
 
             i += 1
 
@@ -94,14 +94,13 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
         plt.title('Confusion matrix: Temperature')
         plt.scatter(T_target,T_predict,label='Value')
 
-        """
         popt,pcov,r_squared = accuracy(T_target,T_predict)
         plt.plot(T_target, np.array(linear_regression(T_target,*popt)), color = 'tab:orange',
                  label= f'y = {popt[0]:.2f} x +{popt[1]:.2f} | r = {r_squared:.2f}')
-        """
 
         plt.xlabel(r'$\Delta T [K]$:'+'target')
         plt.ylabel(r'$\Delta T [K]$:'+'prediction')
+        plt.legend()
         plt.grid()
         plt.savefig(f'{save}_confusionT.png') if not save == False else False
 
@@ -109,14 +108,13 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
         plt.title('Confusion matrix: Deformation')
         plt.scatter(E_target,E_predict)
 
-        """
         popt,pcov,r_squared = accuracy(E_target,E_predict)
         plt.plot(E_target, np.array(linear_regression(E_target,*popt)), color = 'tab:orange',
                  label= f'y = {popt[0]:.2f} x +{popt[1]:.2f} | r = {r_squared:.2f}')
-        """
 
         plt.xlabel(r'$\Delta \: \mu \varepsilon$:'+'target')
         plt.ylabel(r'$\Delta \: \mu \varepsilon$:'+'prediction')
+        plt.legend()
         plt.grid()
         plt.savefig(f'{save}_confusionE.png') if not save == False else False
 
@@ -127,7 +125,10 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
 
 
 def linear_regression(x,a,b):
-     return a*x + b
+    try:
+        return a*x + b
+    except:
+        return a*np.array(x) + b
 
 def accuracy(xdata, ydata):
     from scipy.optimize import curve_fit
