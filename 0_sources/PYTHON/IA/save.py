@@ -48,22 +48,18 @@ def save(self):
 
 def save_model(self):
 
-    models = {'temperature':self.model_T,'deformation':self.model_E}
+    path_to = os.path.join(self.path,self.name.replace('.pkl',f'_model.pkl'))
 
-    for key,val in models.items():
+    if isinstance(self.model, torch.nn.Module):
+        torch.save(self.model.state_dict(),path_to)
+    else:
+        try:
+            with open(path_to, 'wb') as outp:
+                pickle.dump(self.model.__dict__, outp, pickle.HIGHEST_PROTOCOL)
+        except:
+            save_keras_model(self.model,self.name.replace('.pkl',f'_model.pkl'),self.path)
 
-        path_to = os.path.join(self.path,self.name.replace('.pkl',f'_model_{key}.pkl'))
-
-        if isinstance(val, torch.nn.Module):
-            torch.save(val.state_dict(),path_to)
-        else:
-            try:
-                with open(path_to, 'wb') as outp:
-                    pickle.dump(val.__dict__, outp, pickle.HIGHEST_PROTOCOL)
-            except:
-                save_keras_model(val,self.name.replace('.pkl',f'_model_{key}.pkl'),self.path)
-
-        print(f'{key} model saved!')
+    print(f'model saved!')
 
 
 def save_keras_model(model, model_name, model_dir):

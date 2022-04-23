@@ -30,11 +30,10 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
                 x = torch.from_numpy( np.array([self.X['test'][i]]) ).float()
                 y = self.Y['test'][i]
                 # Inference
-                T,E = self.model(x.to(self.device))[0]
+                T,E = self.model(x.to(self.device))
                 # Error
                 if histograms:
-                    e_T[i] = self.scaler['T'].inverse_transform(T) - self.scaler['T'].inverse_transform(y[0])
-                    e_E[i] = self.scaler['E'].inverse_transform(E) - self.scaler['T'].inverse_transform(y[1])
+                    e_T[i], e_E[i] = self.scalerY.inverse_transform([T,E]) - self.scalerY.inverse_transform([y[0],y[1]])
                 # Confusion
                 if confusion:
                     T_predict.append(   float(self.scaler['T'].inverse_transform(    T.cpu().detach().numpy()  )))
@@ -52,8 +51,7 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
             E = self.model_E.predict(x.reshape(1, -1))
             # Error
             if histograms:
-                e_T[i] = self.scaler['T'].inverse_transform(T) - self.scaler['T'].inverse_transform(y[0])
-                e_E[i] = self.scaler['E'].inverse_transform(E) - self.scaler['T'].inverse_transform(y[1])
+                e_T[i], e_E[i] = self.scalerY.inverse_transform([T,E]) - self.scalerY.inverse_transform([y[0],y[1]])
             # Confusion
             if confusion:
                 T_predict.append(   float(self.scaler['T'].inverse_transform(    T         )))

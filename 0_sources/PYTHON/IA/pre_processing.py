@@ -11,8 +11,8 @@ class a_scaler(object):
             self.max[i] = np.amax(X[:,i])
             self.min[i] = np.amin(X[:,i])
             if self.max[i] == self.min[i]:
-                print('Column with single value')
-                self.max[i] = 1
+                print('Column',i,'with single value')
+                self.max[i] = np.amax(X[:,i])*2
                 self.min[i] = 0
 
     def transform(self,x):

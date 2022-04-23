@@ -17,7 +17,7 @@ class First_Stage_Layer(nn.Module):
 
         # Layer secuence
         self.FC = nn.Sequential(
-            nn.Linear(12000, 6000),
+            nn.Linear(12001, 6000),
             nn.Tanh(),
             nn.Linear(6000, 3000),
             nn.Tanh(),

@@ -42,11 +42,12 @@ def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=n
 
     train_loss = []
     val_loss = []
+    zero_time = float(time.time())
 
     for epoch in range(num_epochs):
-        train_loss_T = 0
-        train_loss_E = 0
         loss_sum = 0
+        train_loss_T_sum = 0
+        train_loss_E_sum = 0
         model.train()
         for (x, y) in obj.dl['train']:
             x = x.to(device)
@@ -58,8 +59,8 @@ def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=n
             loss_E = criterion(E, y[:,1])
             loss = loss_T + loss_E
             loss_sum += loss
-            train_loss_T += loss_T/len(y[:,0])
-            train_loss_E += loss_E/len(y[:,1])
+            train_loss_T_sum += loss_T/len(y[:,0])
+            train_loss_E_sum += loss_E/len(y[:,1])
             # Backward
             optimizer.zero_grad()
             loss.backward()
@@ -69,18 +70,16 @@ def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=n
 
             with torch.no_grad():
                 model.eval()
-                T_sum = 0
-                E_sum = 0
+                loss_sum = 0
+                valid_loss_T_sum = 0
+                valid_loss_E_sum = 0
                 for x, y in obj.dl['val']:
                     x = x.to(device)
                     #forward pass
                     T, E = model(x)
                     # Mean Square Error
-                    T_sum += torch.sum( torch.abs( T.to('cpu') - y[:,0].to('cpu') ) )
-                    E_sum += torch.sum( torch.abs( E.to('cpu') - y[:,1].to('cpu') ) )
-
-                    valid_loss_T += T_sum/len(y[:,0])
-                    valid_loss_E += E_sum/len(y[:,1])
+                    valid_loss_T_sum += torch.sum( torch.abs( T.to('cpu') - y[:,0].to('cpu') ) )/len(y[:,0])
+                    valid_loss_E_sum += torch.sum( torch.abs( E.to('cpu') - y[:,1].to('cpu') ) )/len(y[:,1])
 
                 # Times
                 elapsed_time        = (float(time.time())-zero_time)
@@ -89,13 +88,15 @@ def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=n
                 remaining_time      = time_per_epoch * remaining_epochs
 
                 # Information
-                train_loss.append(float(loss_T_sum.cpu().detach().numpy()))
-                validation_loss.append(float(val_loss_T_sum.cpu().detach().numpy()))
-
+                train_loss_T.append(float(train_loss_T_sum.cpu().detach().numpy()))
+                valid_loss_T.append(float(valid_loss_T_sum.cpu().detach().numpy()))
+                train_loss_E.append(float(train_loss_E_sum.cpu().detach().numpy()))
+                valid_loss_E.append(float(valid_loss_E_sum.cpu().detach().numpy()))
+                                                                                                     
 
                 print(f'Epoch: {epoch+1} of {num_epochs} || Remaining time: {time.strftime("%H:%M:%S",  time.gmtime(remaining_time))}')
-                print(f' Training T loss: {train_loss_T:.4f} || Validation T loss: {valid_loss_T:.4f} ')
-                print(f' Training E loss: {train_loss_E:.4f} || Validation E loss: {valid_loss_E:.4f} ')
+                print(f' Training T loss: {train_loss_T_sum:.4f} || Validation T loss: {valid_loss_T_sum:.4f} ')
+                print(f' Training E loss: {train_loss_E_sum:.4f} || Validation E loss: {valid_loss_E_sum:.4f} ')
 
     if representation:
         import matplotlib.pyplot as plt
@@ -108,7 +109,7 @@ def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=n
         plt.grid()
         plt.show()
 
-    return model_T, model_E
+    return model
 
 
 def fit_sklearn_model(IA_obj,representation=True,save=False,cv=3):
