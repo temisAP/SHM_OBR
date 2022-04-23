@@ -33,6 +33,8 @@ def layer0(data,ref_data,f,lamb=25, mode='same'):
     secuence1 = [P1,P1,P2,S1,S1,S2]
     secuence2 = [P1,P2,P2,S1,S2,S2]
 
+    Df = 1/sr
+
     t = list()
 
     """ Cross correlations """
@@ -49,7 +51,7 @@ def layer0(data,ref_data,f,lamb=25, mode='same'):
 
 
     """ Return """
-    t = [t] # Append frequency step to have information about magnitude
+    t = [t,[Df]] # Append frequency step to have information about magnitude
     X = np.array([item for sublist in t for item in sublist])
 
     return X

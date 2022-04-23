@@ -3,6 +3,9 @@ import pickle5 as pickle
 import sys
 import numpy as np
 import torch
+from .model import TE
+from .pre_processing import a_scaler
+
 try:
     import keras
     from keras.models import load_model
@@ -27,25 +30,24 @@ def load(self):
 
     return self
 
-def load_model(self):
+def load_model(self,path_to = None):
 
-    models = {'temperature':self.model_T,'deformation':self.model_E}
+    path_to = path_to if path_to else os.path.join(self.path,self.name.replace('.pkl',f'_model.pkl'))
 
-    for key,val in models.items():
+    if not hasattr(self, "model") or self.model == 'torch':
+        self.model = TE()
 
-        path_to = os.path.join(self.path,self.name.replace('.pkl',f'_model_{key}.pkl'))
+    if isinstance(self.model, torch.nn.Module):
+        self.model.load_state_dict(torch.load(path_to))
 
-        if isinstance(val, torch.nn.Module):
-            val.load_state_dict(torch.load(path_to))
-        else:
-            try:
-                with open(path_to, 'rb') as inp:
-                    val.__dict__ = pickle.load(inp)
-            except:
-                val = load_keras_model(self.name.replace('.pkl',f'_model_{key}.pkl'),self.path)
+    else:
+        try:
+            with open(path_to, 'rb') as inp:
+                self.model.__dict__ = pickle.load(inp)
+        except:
+            self.model = load_keras_model(self.name.replace('.pkl',f'_model.pkl'),self.path)
 
-        print(f'{key} model loaded!')
-
+    print(f' model loaded!')
 
 def load_keras_model(model_name, model_dir):
     """ Load a keras model and its weights """
@@ -56,3 +58,19 @@ def load_keras_model(model_name, model_dir):
     # load weights
     model.load_weights(file_weight)
     return model
+
+def load_scalers(self,path_to = [None,None]):
+
+    path_to_X = path_to if path_to[0] else os.path.join(self.path,self.name.replace('.pkl',f'_scalerX.pkl'))
+    path_to_Y = path_to if path_to[1] else os.path.join(self.path,self.name.replace('.pkl',f'_scalerY.pkl'))
+
+    self.scalerX = a_scaler()
+    self.scalerY = a_scaler()
+
+    with open(path_to_X, 'rb') as inp:
+        self.scalerX.__dict__ = pickle.load(inp)
+    with open(path_to_Y, 'rb') as inp:
+        self.scalerY.__dict__ = pickle.load(inp)
+
+
+    print(f' scalers loaded!')

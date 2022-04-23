@@ -73,5 +73,5 @@ class IA(object):
         else:
             pass
 
-    from .load import load, load_model
-    from .save import save, save_model
+    from .load import load, load_model, load_scalers
+    from .save import save, save_model, save_scalers, save_IA

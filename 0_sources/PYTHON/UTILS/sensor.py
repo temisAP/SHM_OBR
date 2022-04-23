@@ -37,61 +37,40 @@ def local_sensor(y1,y2,f,IA_obj,display=False):
         :returns E (float)   : Microdeformation increment
     """
 
-    mode = 'same'
+    P1 = y1[0]
+    S1 = y1[1]
+    P2 = y2[0]
+    S2 = y2[1]
 
-    """ Autocorrelation """
-
-    # Autocorrelation
-    y = y1
-    autocorr1 = np.correlate(y, y, mode=mode)/np.var(y)/len(y)
-    y = y2
-    autocorr2 = np.correlate(y, y, mode=mode)/np.var(y)/len(y)
-    autocorr = np.absolute(autocorr1-autocorr2)
-
-    # STL filter
-    seasonal,trend = np.array(sm.tsa.filters.hpfilter(autocorr, lamb=25))
-    autocorr = trend
-
-    autocorr = autocorr[int(len(autocorr)/2-200):int(len(autocorr)/2+200)]
-
-    """ Cross correlation """
-
-    # Frequency sampling
+    """ Frequency sampling """
     DF = f[-1]-f[0]     # Frequency increment
-    n = len(y1)         # Sample lenght
+    n = len(P1)         # Sample lenght
     sr = 1/(DF/n)       # Scan ratio
+    spectralshift_arr = np.linspace(-0.5*n/sr, 0.5*n/sr, n+1)
 
-    # FFT
-    Y1 = np.absolute(np.fft.fft(y1))
-    Y2 = np.absolute(np.fft.fft(y2))
-    Y1 = (Y1 - np.mean(Y1)) / (np.std(Y1) * len(Y1))
-    Y2 = (Y2 - np.mean(Y2)) / (np.std(Y2))
+    secuence1 = [P1,P1,P2,S1,S1,S2]
+    secuence2 = [P1,P2,P2,S1,S2,S2]
 
-    # Cross corelation
-    crosscorr = np.correlate(Y1, Y2, mode=mode)
+    Df = 1/sr
 
-    # Spectral shift
-    spectralshift_lags = np.linspace(-0.5*n/sr, 0.5*n/sr, n+1)
-    spectralshift = spectralshift_lags[np.argmax(crosscorr)]
-    spectralshift = -1*spectralshift/np.mean(f)*1e6             # micro spectralshift
+    t = list()
 
-    """ Model """
+    """ Cross correlations """
+    for y1,y2 in zip(secuence1,secuence2):
 
-    # Sizes
-    crosscorr = np.interp(np.linspace(0,1,len(crosscorr)),np.linspace(0,1,2000), crosscorr)
-    autocorr  = np.interp(np.linspace(0,1,len(autocorr)) ,np.linspace(0,1,400),  autocorr )
+        # FFT
+        Y1 = np.absolute(np.fft.fft(y1))
+        Y2 = np.absolute(np.fft.fft(y2))
+        Y1 = (Y1 - np.mean(Y1)) / (np.std(Y1) * len(Y1))
+        Y2 = (Y2 - np.mean(Y2)) / (np.std(Y2))
 
-    # Scalers
-    spectralshift   = IA_obj.scaler_ss.transform(spectralshift)
-    croscorr        = IA_obj.scaler_cc.transform(crosscorr)
-    autocorr        = IA_obj.scaler_ac.transform(autocorr)
+        # Cross corelation
+        t.extend(np.correlate(Y1, Y2, mode='same').tolist())
 
-    t = [[spectralshift],crosscorr,autocorr]
-    x = np.array([item for sublist in t for item in sublist])
 
-    # Prediction
-    T = float(IA_obj.scaler_T.inverse_transform(IA_obj.model_T.predict(x.reshape(1, -1))))
-    E = float(IA_obj.scaler_E.inverse_transform(IA_obj.model_E.predict(x.reshape(1, -1))))
+    """ Return """
+    t = [t,[Df]] # Append frequency step to have information about magnitude
+    X = np.array([item for sublist in t for item in sublist])
 
     if display:
         print('Under construction')

@@ -3,29 +3,43 @@ from sklearn import preprocessing
 import matplotlib.pyplot as plt
 
 class a_scaler(object):
-    def __init__(self,X):
-        print('Creating scaler for',X.shape[1],'items and',X.shape[0],'samples')
-        self.max = np.zeros(X.shape[1])
-        self.min = np.zeros(X.shape[1])
-        for i in range(X.shape[1]):
-            self.max[i] = np.amax(X[:,i])
-            self.min[i] = np.amin(X[:,i])
-            if self.max[i] == self.min[i]:
-                print('Column',i,'with single value')
-                self.max[i] = np.amax(X[:,i])*2
-                self.min[i] = 0
+    def __init__(self,X=None):
+        if not X is None:
+            self.max = np.zeros(X.shape[1])
+            self.min = np.zeros(X.shape[1])
+            print('Creating scaler for',X.shape[1],'items and',X.shape[0],'samples')
+            for i in range(X.shape[1]):
+                self.max[i] = np.amax(X[:,i])
+                self.min[i] = np.amin(X[:,i])
+                if self.max[i] == self.min[i]:
+                    print('Column',i,'with single value')
+                    self.max[i] = np.amax(X[:,i])*2
+                    self.min[i] = 0
+        #else:
+            #print('Scaler initialized')
 
     def transform(self,x):
+
+        if isinstance(x,list):
+            x = np.array(x)
+        if len(x.shape) == 1:
+            x = x.reshape(1,-1)
+
         out = np.empty_like(x)
         for i in range(x.shape[1]):
             out[:,i] = (x[:,i]-self.min[i])/(self.max[i]-self.min[i])
         return out
 
     def inverse_transform(self,z):
+
+        if isinstance(z,list):
+            z = np.array(z)
+        if len(z.shape) == 1:
+            z = z.reshape(1,-1)
+
         out = np.empty_like(z)
         for i in range(z.shape[1]):
             out[:,i] = (self.max[i]-self.min[i]) * z[:,i] + self.min[i]
-
         return out
 
 

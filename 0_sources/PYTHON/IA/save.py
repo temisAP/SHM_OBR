@@ -61,7 +61,6 @@ def save_model(self):
 
     print(f'model saved!')
 
-
 def save_keras_model(model, model_name, model_dir):
     """ Save a keras model and its weights """
     if not os.path.isdir(model_dir):
@@ -73,3 +72,17 @@ def save_keras_model(model, model_name, model_dir):
     json_string = model.to_json()
     open(options['file_arch'], 'w').write(json_string)
     model.save_weights(options['file_weight'])
+
+def save_scalers(self,path_to=[None,None]):
+    print('Under construction')
+
+def save_IA(self,path_to=None):
+
+    IA_obj = self; print('error in save_IA') if IA_obj is self else False
+    IA_obj.name = self.name.replace('.pkl',f'_IA.pkl')
+
+    # Emtpy dictionaries
+    IA_obj.X = dict()
+    IA_obj.Y = dict()
+    IA_obj.dl = None
+    IA_obj.save()
