@@ -81,11 +81,12 @@ def load_datasets(self,
 
     """ Data loaders """
 
-    if dataloaders and split:
+    if data_loaders and split:
         self.get_dataloaders()
     else:
          self.dl = None
 
+    print('')
 
 def get_datasets(self,datasets,ds_percentages=[100]):
     # Change dataset dict to list
@@ -176,7 +177,7 @@ def get_dataloaders(self):
     dl = dict.fromkeys(self.X.keys())
     for key, val in dl.items():
         dl[key] = DataLoader(
-                    dataset=the_dataset(self.X[key],self.y[key]),
+                    dataset=the_dataset(self.X[key],self.Y[key]),
                     batch_size=32,
                     shuffle=True)
 

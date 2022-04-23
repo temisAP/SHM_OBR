@@ -1,6 +1,6 @@
 import torch
 import os
-from .model import splitter
+from .model import TE
 
 class IA(object):
 
@@ -59,7 +59,7 @@ class IA(object):
             self.Y  = dict()          # Dataset correct outputs  for train, test and validation (valid)
             self.dl = dict()          # Dataloaders              for train, test and validation (valid)
 
-    from .load_datasets import load_datasets, get_datasets, split_datasets, get_dataloaders        
+    from .load_datasets import load_datasets, get_datasets, split_datasets, get_dataloaders
     from .pre_processing import pre_processing
     from .fit_data import fit_data
     from .results import results

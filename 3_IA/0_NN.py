@@ -3,7 +3,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../0_sources/PYTHON'))
 from IA import IA
-from IA.model import splitter
+from IA.model import TE
 
 
 dataset = 'test_1'
@@ -15,8 +15,7 @@ path_to_dataset = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACI
 
 IA_obj = IA('./models',name='prueba2')
 
-#IA_obj.model_T = splitter()
-#IA_obj.model_E = splitter()
+IA_obj.model_T = TE()
 
 IA_obj.load_datasets([path_to_dataset],plot_histogram=False); IA_obj.save()
 #IA_obj.load_datasets([path_to_dataset]); IA_obj.save()

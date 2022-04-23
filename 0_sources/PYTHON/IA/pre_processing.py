@@ -82,6 +82,3 @@ def pre_processing(self,plot_preprocessing=False,plot_histogram=False):
             fig.suptitle(f'Histograms for {key}: outputs')
 
         plt.show()
-
-    self.X = X
-    self.Y = y

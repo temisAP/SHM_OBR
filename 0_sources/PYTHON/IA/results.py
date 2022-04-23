@@ -19,21 +19,18 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
         E_predict = list()
         E_target = list()
 
-    if isinstance(self.model_T, torch.nn.Module):
+    if isinstance(self.model, torch.nn.Module):
         # To device
-        self.model_T.to(self.device)
-        self.model_E.to(self.device)
+        self.model.to(self.device)
 
         with torch.no_grad():
-            self.model_T.eval()
-            self.model_E.eval()
+            self.model.eval()
             for i in range(0,len(self.X['test'])):
                 # Extract the sample
                 x = torch.from_numpy( np.array([self.X['test'][i]]) ).float()
                 y = self.Y['test'][i]
                 # Inference
-                T = self.model_T(x.to(self.device))[0]
-                E = self.model_E(x.to(self.device))[0]
+                T,E = self.model(x.to(self.device))[0]
                 # Error
                 if histograms:
                     e_T[i] = self.scaler['T'].inverse_transform(T) - self.scaler['T'].inverse_transform(y[0])

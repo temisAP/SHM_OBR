@@ -3,49 +3,81 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
+# Weights initialization
+def init_weights(m):
+    if isinstance(m, nn.Linear):
+        torch.nn.init.xavier_uniform_(m.weight)
+        m.bias.data.fill_(0.01)
 
-class Linear(nn.Module):
-    """ Linear compressor/expansor """
-    def __init__(self,input_dim,output_dim,N):
-        super().__init__()
-        # Dimensions
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-        dimensions = np.linspace(input_dim,output_dim,N+1,dtype = np.int32)
-        # Layer secuence
-        self.FC = nn.Sequential()
-        for i in range(N):
-            self.FC.add_module("Linear"+str(i),nn.Linear(dimensions[i],dimensions[i+1]))
-            self.FC.add_module("BatchNorm"+str(i),nn.BatchNorm1d(dimensions[i+1]))
-            self.FC.add_module("Tanh"+str(i),nn.Tanh())
-        self.FC.add_module("Linear"+str(N),nn.Linear(dimensions[-1],output_dim))
-    def forward(self,x):
-        return self.FC(x)
-
-
-class splitter(nn.Module):
-    """
-        Class to joint Stages and regress
-        temperature or deformation from signal
-    """
-
+# Compress sensor layer
+class First_Stage_Layer(nn.Module):
+    """ Custom Linear layer but mimics a standard linear layer """
     def __init__(self):
-        super(splitter, self).__init__()
+        super().__init__()
 
-        # Compressor layers
-        self.C = Linear(16,1000,7)
-
-        # Regressor layers
-        self.R = Linear(1000,1,8)
-
+        # Layer secuence
+        self.FC = nn.Sequential(
+            nn.Linear(12000, 6000),
+            nn.Tanh(),
+            nn.Linear(6000, 3000),
+            nn.Tanh(),
+            # nn.Dropout(p=0.2),
+            nn.Linear(3000, 1500),
+            nn.Tanh(),
+            # nn.Dropout(p=0.2),
+            nn.Linear(1500, 750),
+            nn.Tanh(),
+            # nn.Dropout(p=0.2),
+            nn.Linear(750, 375)
+        ).apply(init_weights)
     def forward(self, x):
-        # Batch size = x[bs,:]
+        x = self.FC(x)
+        return x
+
+class Second_Stage_Layer(nn.Module):
+    """ Custom Linear layer but mimics a standard linear layer """
+    def __init__(self):
+        super().__init__()
+        # Layer secuence
+        self.FC = nn.Sequential(
+            nn.Linear(375, 350),
+            nn.Tanh(),
+            nn.Linear(350, 300),
+            nn.Tanh(),
+            nn.Linear(300, 250),
+            nn.Tanh(),
+            nn.Linear(250, 200),
+            nn.Tanh(),
+            nn.Linear(200, 150),
+            nn.Tanh(),
+            nn.Linear(150, 100),
+            nn.Tanh(),
+            nn.Linear(100, 50),
+            nn.Tanh(),
+            nn.Linear(50, 25),
+            nn.Tanh(),
+            nn.Linear(25, 16),
+            nn.Tanh(),
+            nn.Linear(16, 4),
+            nn.Tanh(),
+            nn.Linear(4, 1),
+            nn.ReLU()
+        ).apply(init_weights)
+    def forward(self, x):
+        x = self.FC(x)
+        return x
+
+class TE(nn.Module):
+    def __init__(self):
+        super(TE, self).__init__()
+        self.cs0 = First_Stage_Layer()
+        self.fc_T = Second_Stage_Layer()
+        self.fc_E = Second_Stage_Layer()
+    def forward(self, x):
         bs = x.shape[0]
+        x0 = self.cs0(x.reshape(bs,-1))
 
-        # First_Stage_Layer
-        y = self.C(x)
+        T = self.fc_T(x0).flatten()
+        E = self.fc_E(x0).flatten()
 
-        # Second_Stage_Layer
-        out = self.R(y)
-
-        return out
+        return T, E
