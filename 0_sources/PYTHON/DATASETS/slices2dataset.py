@@ -40,7 +40,7 @@ class dataset(object):
     from .load import load
 
 
-def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],conserve_segment=[None,None],more_info=True):
+def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],conserve_segment=[None,None],more_info=False):
     """ Function to load all slices (previously generated), compute them in pairs, and
     genenerate new values for a dataset
 
@@ -158,8 +158,6 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
 
             # Create frecuency array
             f = np.linspace(row['f_0'],row['f_end'],3)
-            # Create length array
-            z = np.linspace(row['z_0'],row['z_end'],3)
 
             # Access signal data from slices, preprocess it and then save in dataset as input for NN
             data        = [[0],[0]]
@@ -171,7 +169,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
             ref_data[0] = slices_obj.slices[ref_row['ID']].P
             ref_data[1] = slices_obj.slices[ref_row['ID']].S
 
-            X = layer0(data,ref_data,z,f)
+            X = layer0(data,ref_data,f)
             dataset_obj.X.append(X)
 
             # Access status information of the slice to create outputs for NN
@@ -201,7 +199,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
                 'delta_EPS' : delta_EPS,
                 'parent1'   : parent1,
                 'parent2'   : parent2,
-                'spectralshift' : X[4],
+                #'spectralshift' : X[4],
                 'x'         : row['x'],
                 'd_flecha'  : delta_flecha}
             else:

@@ -3,77 +3,78 @@ from sklearn import preprocessing
 import matplotlib.pyplot as plt
 
 class a_scaler(object):
-    def __init__(self,max,min):
-        self.max = max
-        self.min = min
-        if self.max == self.min:
-            print('Scaler is broken :(')
-            self.max = 1
-            self.min = 0
+    def __init__(self,X):
+        print('Creating scaler for',X.shape[1],'items and',X.shape[0],'samples')
+        self.max = np.zeros(X.shape[1])
+        self.min = np.zeros(X.shape[1])
+        for i in range(X.shape[1]):
+            self.max[i] = np.amax(X[:,i])
+            self.min[i] = np.amin(X[:,i])
+            if self.max[i] == self.min[i]:
+                print('Column with single value')
+                self.max[i] = 1
+                self.min[i] = 0
 
     def transform(self,x):
-        return (x-self.min)/(self.max-self.min)
+        out = np.empty_like(x)
+        for i in range(x.shape[1]):
+            out[:,i] = (x[:,i]-self.min[i])/(self.max[i]-self.min[i])
+        return out
 
     def inverse_transform(self,z):
-        return (self.max-self.min) * z + self.min
+        out = np.empty_like(z)
+        for i in range(z.shape[1]):
+            out[:,i] = (self.max[i]-self.min[i]) * z[:,i] + self.min[i]
+
+        return out
 
 
-def pre_processing(self,X,y,plot_preprocessing=False,plot_histogram=False):
+def pre_processing(self,plot_preprocessing=False,plot_histogram=False):
 
     # Lists to np.arrays
 
-    for key,val in X.items():
-        X[key] = np.array(X[key])
-        y[key] = np.array(y[key])
-        print(f'{key} size = {len(X[key])}')
+    for key,val in self.X.items():
+        self.X[key] = np.array(self.X[key])
+        self.Y[key] = np.array(self.Y[key])
+        print(f'{key} size = {len(self.X[key])}')
 
     # Set up scalers
-    self.scaler = scaler = dict()
-
-    for i in range(16):
-        xx = X['train'][:,i].flatten().reshape(-1, 1)
-        self.scaler[str(i)]  = scaler[str(i)]  = a_scaler(xx.max(),xx.min())
-
-    xx = y['train'][:,0].flatten().reshape(-1, 1)
-    self.scaler['T']  = scaler['T']  = a_scaler(xx.max(),xx.min())
-
-    xx = y['train'][:,1].flatten().reshape(-1, 1)
-    self.scaler['E']  = scaler['E']  = a_scaler(xx.max(),xx.min())
+    self.scalerX = scalerX = a_scaler(self.X['train'])
+    self.scalerY = scalerY = a_scaler(self.Y['train'])
 
     # Transform each sample
+    for key,val in self.X.items():
 
-    for key,val in X.items():
+        self.X[key] = scalerX.transform(self.X[key])
+        self.Y[key] = scalerY.transform(self.Y[key])
 
-        # Transform each sample
 
-        for i in range(16):
-            X[key][:,i] = np.array([scaler[str(i)].transform(sample)  for sample in X[key][:,i] ])
-
-        T  = np.array([scaler['T'].transform(sample)  for sample in y[key][:,0]     ])
-        E  = np.array([scaler['E'].transform(sample)  for sample in y[key][:,1]     ])
-
-        # Plot histograms of values of ss, cc, ac, T and E
         if plot_histogram:
 
-            fig, axs = plt.subplots(4, 4, constrained_layout=True)
+            fig, axs = plt.subplots(3,2, constrained_layout=True)
 
-            for idx,val in enumerate(np.transpose(X[key])):
+            limits = np.array([0,2,4,6,8,10,12]) * 1000; idx = 0
 
-                axs[idx//4,idx%4].hist(val,bins=20)
-                axs[idx//4,idx%4].set_xlim(-0.5,1.5)
-                axs[idx//4,idx%4].grid()
-                axs[idx//4,idx%4].set_title(idx)
+            for i in range(6):
+
+                for k in range(len(limits)-1):
+                    axs[i//2,i%2].hist(self.X[key][:,limits[k]:limits[k+1]],bins=20,histtype=u'step')
+                axs[i//2,i%2].set_xlim(-0.5,1.5)
+                axs[i//2,i%2].set_xlim(-0.5,1.5)
+                axs[i//2,i%2].grid()
+                axs[i//2,i%2].set_title(idx)
+                idx += 1
 
             fig.suptitle(f'Histograms for {key}: inputs')
 
-            fig, axs = plt.subplots(1, 3, constrained_layout=True)
+            fig, axs = plt.subplots(1, 2, constrained_layout=True)
 
-            axs[0].hist(T,bins=20)
+            axs[0].hist(self.Y[key][:,0],bins=20)
             axs[0].set_xlim(-0.5,1.5)
             axs[0].grid()
             axs[0].set_title('T')
 
-            axs[1].hist(E,bins=20)
+            axs[1].hist(self.Y[key][:,1],bins=20)
             axs[1].set_xlim(-0.5,1.5)
             axs[1].grid()
             axs[1].set_title('E')
@@ -82,8 +83,5 @@ def pre_processing(self,X,y,plot_preprocessing=False,plot_histogram=False):
 
         plt.show()
 
-        # Concatenate information
-        X[key] = X[key]
-        y[key] = np.concatenate((np.transpose(np.array([T])),np.transpose(np.array([E]))),axis=1)
-
-    return X,y
+    self.X = X
+    self.Y = y

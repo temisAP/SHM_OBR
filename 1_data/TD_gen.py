@@ -28,13 +28,13 @@ CM2_obj = DATASETS(path_to_folder)
 #CM2_obj.save()
 
 
-CM2_obj.obr2slices(delta=100)
+CM2_obj.obr2slices(delta=500)
 CM2_obj.save()
 
 # slices = CM2_obj.load_slices()
 
 
-CM2_obj.slices2dataset(matches=100,percentage=100,conserve_segment=[100, 280])
+CM2_obj.slices2dataset(matches=50,percentage=100,conserve_segment=[100, 280])
 CM2_obj.save()
 
 CM2_obj.dataset_plot()
