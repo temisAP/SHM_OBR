@@ -38,7 +38,7 @@ def load_model(self,path_to = None):
         self.model = TE()
 
     if isinstance(self.model, torch.nn.Module):
-        self.model.load_state_dict(torch.load(path_to))
+        self.model.load_state_dict(torch.load(path_to), map_location=torch.device(self.device))
 
     else:
         try:

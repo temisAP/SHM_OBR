@@ -328,8 +328,8 @@ def obr_TE(self,REF,files=None,delta=2000,window=1000,type=None,eps=False):
     for file in files:
         if hasattr(self.obrfiles[file], 'Data'):
 
-            y1 = self.obrfiles[REF].Data[0]
-            y2 = self.obrfiles[file].Data[0]
+            refData = self.obrfiles[REF].Data
+            Data    = self.obrfiles[file].Data
             z = self.obrfiles[file].z
 
             if type == 'temperature':
@@ -337,7 +337,7 @@ def obr_TE(self,REF,files=None,delta=2000,window=1000,type=None,eps=False):
             elif type == 'flecha':
                 T = int(self.obrfiles[file].flecha-self.obrfiles[REF].flecha)
 
-            TT,EE = sensor(y1,y2,f,delta=delta,window=window,display = False)
+            TT,EE = sensor(Data,refData,f,delta=delta,window=window,display = False)
             z = np.linspace(z[0],z[-1],len(TT))
 
             # Add real deformation to graph
@@ -375,7 +375,7 @@ def obr_TE(self,REF,files=None,delta=2000,window=1000,type=None,eps=False):
 
     ax.set_xlabel('z [m]')
     ax.grid()
-    plt.show()
+    
 
 def local_analysis(self,files,position):
     """ Function to analize signal in a certain point """
