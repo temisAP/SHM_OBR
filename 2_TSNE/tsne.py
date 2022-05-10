@@ -21,23 +21,25 @@ path_to_dataset = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACI
 
 """ Load IA """
 
-IA_obj = IA('./models',name=dataset)
-IA_obj.save()
+IA_obj = IA('./models',name='IA')
+#IA_obj.save()
 
 #IA_obj.load_datasets(path_to_dataset,plot_histogram=True,plot_preprocessing=True)
-IA_obj.load_datasets(path_to_dataset,split=False, preprocessing=False)
+#IA_obj.load_datasets(path_to_dataset,split=False, preprocessing=False)
 
 # %%
 
-IA_obj.save()
+#IA_obj.save()
 
 # %%
 
 """ Get SS """
 
-ss    = np.array([lst[15] for lst in IA_obj.X]) # 0-15
-temps = np.array([lst[0] for lst in IA_obj.Y])
-defs  = np.array([lst[1] for lst in IA_obj.Y])
+"""
+spectralshift_arr = np.linspace(-0.5, 0.5, 2000+1)
+ss    = -1*spectralshift_arr[np.argmax(IA_obj.X['train'][:,0:2000])] #np.array([lst[15] for lst in IA_obj.X]) # 0-15
+temps = np.array([lst[0] for lst in IA_obj.Y['train']])
+defs  = np.array([lst[1] for lst in IA_obj.Y['train']])
 
 # %%
 
@@ -64,14 +66,18 @@ ax[1].grid()
 plt.show()
 
 # %%
-
+"""
 """ TSNE """
-
 # Fit the model
+
+
+temps = np.array([lst[0] for lst in IA_obj.Y['train']])
+defs  = np.array([lst[1] for lst in IA_obj.Y['train']])
+
 #model = TSNE(n_components=2, perplexity=50.0, early_exaggeration=15.0,learning_rate=80)
 model = PCA(n_components=2)
 np.set_printoptions(suppress=True)
-Y =  model.fit_transform(IA_obj.X)
+Y = model.fit_transform(IA_obj.X['train'])
 
 
 # Plot the data
@@ -80,7 +86,7 @@ fig, ax = plt.subplots(1,2)
 ax[0].scatter(Y[:,0],Y[:,1], c=defs, cmap='jet')
 sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=min(defs), vmax=max(defs)))
 cbar = plt.colorbar(sm,ax=ax[0],spacing='proportional')
-cbar.set_label(r'$\mu \varepsilon$',rotation=0,labelpad=10)
+cbar.set_label(r'$\Delta \: \mu \varepsilon$',rotation=0,labelpad=10)
 
 ax[1].scatter(Y[:,0],Y[:,1], c=temps, cmap='jet')
 sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=min(temps), vmax=max(temps)))

@@ -70,7 +70,6 @@ def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=n
 
             with torch.no_grad():
                 model.eval()
-                loss_sum = 0
                 valid_loss_T_sum = 0
                 valid_loss_E_sum = 0
                 for x, y in obj.dl['val']:
@@ -92,7 +91,7 @@ def fit_torch_model(obj,num_epochs=25,lr=1e-7, representation= True, criterion=n
                 valid_loss_T.append(float(valid_loss_T_sum.cpu().detach().numpy()))
                 train_loss_E.append(float(train_loss_E_sum.cpu().detach().numpy()))
                 valid_loss_E.append(float(valid_loss_E_sum.cpu().detach().numpy()))
-                                                                                                     
+
 
                 print(f'Epoch: {epoch+1} of {num_epochs} || Remaining time: {time.strftime("%H:%M:%S",  time.gmtime(remaining_time))}')
                 print(f' Training T loss: {train_loss_T_sum:.4f} || Validation T loss: {valid_loss_T_sum:.4f} ')

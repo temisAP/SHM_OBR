@@ -1,0 +1,17 @@
+*** Temperature histogram ***
+Absolute mean error temperature: 1.8472 K 
+Normal distribution N(mu = -0.5948 K,sigma² = 2.4044 K)
+99% Confident interval:[-4.5889,3.3994] K
+95% Confident interval:[-3.6339,2.4444] K
+*** Deformation histogram ***
+Absolute mean error deformation: 59.6631 με 
+Normal distribution N(mu = -27.2083 με,sigma² = 71.4478 με)
+99% Confident interval:[-48.9810,-5.4357] με
+95% Confident interval:[-43.7753,-10.6414] με
+*** Temperature confusion ***
+y = 0.94 x +-0.61 | r = 0.96
+*** Deformation confusion ***
+y = 0.93 x +-27.39 | r = 0.94
+
+min Delta E (no-zero) 0.22295081967212127
+min Delta T (no-zero) 10

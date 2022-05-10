@@ -136,8 +136,4 @@ def sensor(Data,refData,f,delta=200,window=1000,display = False):
     E = np.array(Es)
 
 
-    T = signal.savgol_filter(T, window_length = 11, polyorder=2, deriv=0, delta=0.5, mode='interp', cval=0.0)
-    E = signal.savgol_filter(E, window_length = 25, polyorder=2, deriv=0, delta=0.5, mode='interp', cval=0.0)
-
-
     return T,E

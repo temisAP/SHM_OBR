@@ -79,85 +79,92 @@ def results(self,histograms=True,confusion=True,layers=False,representation=True
         E_predict = np.array(E_predict)
         E_target = np.array(E_target)
 
+
+    """ ******** Plots ******** """
+
+    # Ploting results keys and values (to make it easier)
+    Upper_case_keys = ['Temperature', 'Deformation']
+    Lower_case_keys = ['temperature', 'deformation']
+    Errors          = [e_T,e_E]              if histograms else None
+    Predictions     = [T_predict, E_predict] if confusion  else None
+    Targets         = [T_target,  E_target]  if confusion  else None
+    Unitss          = ['K','με']
+
     if histograms:
 
         from scipy.stats import norm
+        import scipy.stats as st
         import statistics
 
-        # Temperature
-        plt.figure()
-        plt.title(f'Temperature absolute medium error: {sum(abs(e_T))/len(e_T):.4f} K')
-        plt.hist(e_T,label='Data',bins=25, density=True)
+        for uck, lck, data, units in zip(Upper_case_keys,Lower_case_keys,Errors,Unitss):
 
-        mu, std = norm.fit(e_T)
-        xmin, xmax = plt.xlim()
-        x = np.linspace(xmin, xmax, 100)
-        p = norm.pdf(x, mu, std)
-        plt.plot(x, p, 'tab:orange', label=rf'$N(\mu = {mu:.4f},\sigma^2 = {std:.4f})$')
+            print(f'*** {uck} histogram ***')
 
-        plt.xlabel('Temperature error [K]')
-        plt.ylabel('Density of results')
-        plt.legend()
-        plt.grid()
+            print(f'Absolute mean error {lck}: {sum(abs(data))/len(data):.4f} {units} ')
 
-        print(f'Error absoluto medio Temperatura: {sum(abs(e_T))/len(e_T):.4f} K ')
-        plt.savefig(f'{save}_histogramT.png') if not save == False else False
+            plt.figure()
+            plt.title(f'{uck} absolute medium error: {sum(abs(data))/len(data):.4f} {units}')
+            plt.hist(data,label='Data',bins=25, density=True)
 
-        # Deformation
-        plt.figure()
-        plt.title(rf'Deformation absolute medium error: {sum(abs(e_E))/len(e_E):.4f} $\mu \varepsilon$')
-        plt.hist(e_E,label='Data',bins=25, density=True)
+            mu, std = norm.fit(data)
+            xmin, xmax = plt.xlim()
+            x = np.linspace(xmin, xmax, 100)
+            p = norm.pdf(x, mu, std)
+            plt.plot(x, p, 'tab:orange', label='Normal distribution')
+            print(f'Normal distribution N(mu = {mu:.4f} {units},sigma² = {std:.4f} {units})')
 
-        mu, std = norm.fit(e_E)
-        xmin, xmax = plt.xlim()
-        x = np.linspace(xmin, xmax, 100)
-        p = norm.pdf(x, mu, std)
-        plt.plot(x, p, 'tab:orange', label=rf'$N(\mu = {mu:.4f},\sigma^2 = {std:.4f})$')
+            for conf_val in [0.99,0.95]:
+                ci = norm.interval(conf_val, loc=mu, scale=std**0.5)
+                # cnfidence interval left line
+                one_x12, one_y12 = [ci[0],ci[0]], [0, np.amax(p)/2]
+                # cnfidence interval right line
+                two_x12, two_y12 = [ci[1],ci[1]], [0, np.amax(p)/2]
+                plt.plot(one_x12, one_y12, two_x12, two_y12, marker = 'o',
+                    color='tab:green' if conf_val == 0.99 else 'tab:red',
+                    label=f'{int(100*conf_val)}% confident interval')
+                print(f'{int(100*conf_val)}% Confident interval:[{ci[0]:.4f},{ci[1]:.4f}] {units}')
 
-        plt.xlabel(r'Deformation error [$\mu \varepsilon$]')
-        plt.ylabel('Density of results')
-        plt.legend()
-        plt.grid()
+            plt.xlabel(f'{uck} error [{units}]')
+            plt.ylabel('Density of results')
+            handles, labels = plt.gca().get_legend_handles_labels()
+            by_label = dict(zip(labels, handles))
+            plt.legend(by_label.values(), by_label.keys())
+            plt.grid()
+            plt.savefig(f'{save}_histogram_{lck}.png') if not save == False else False
 
-        print(f'Error absoluto medio Deformación: {sum(abs(e_E))/len(e_E):.4f} micro')
-        plt.savefig(f'{save}_histogramE.png') if not save == False else False
 
-        plt.show() if representation else False
+        plt.show() if ( representation and not (confusion or layers) ) else False
 
     if confusion:
 
-        plt.figure()
-        plt.title('Confusion matrix: Temperature')
-        plt.scatter(T_target,T_predict,label='Value')
+        for uck, lck, predict, target, units in zip(Upper_case_keys,Lower_case_keys,Predictions,Targets,Unitss):
 
-        popt,pcov,r_squared = accuracy(T_target,T_predict)
-        plt.plot(T_target, np.array(linear_regression(T_target,*popt)), color = 'tab:orange',
-                 label= f'y = {popt[0]:.2f} x +{popt[1]:.2f} | r = {r_squared:.2f}')
+            print(f'*** {uck} confusion ***')
 
-        plt.xlabel(r'$\Delta T [K]$ '+'(target)')
-        plt.ylabel(r'$\Delta T [K]$ '+'(prediction)')
-        plt.legend()
-        plt.grid()
-        plt.savefig(f'{save}_confusionT.png') if not save == False else False
+            plt.figure()
+            plt.title(f'Predictions vs targets: {uck}')
+            plt.scatter(target,predict,label='Value')
 
-        plt.figure()
-        plt.title('Confusion matrix: Deformation')
-        plt.scatter(E_target,E_predict)
+            popt,pcov,r_squared = accuracy(target,predict)
+            plt.plot(target, np.array(linear_regression(target,*popt)), color = 'tab:orange',
+                     label= 'Linear regression')
 
-        popt,pcov,r_squared = accuracy(E_target,E_predict)
-        plt.plot(E_target, np.array(linear_regression(E_target,*popt)), color = 'tab:orange',
-                 label= f'y = {popt[0]:.2f} x +{popt[1]:.2f} | r = {r_squared:.2f}')
+            print(f'y = {popt[0]:.2f} x +{popt[1]:.2f} | r = {r_squared:.2f}')
 
-        plt.xlabel(r'$\Delta \: \mu \varepsilon$ '+'(target)')
-        plt.ylabel(r'$\Delta \: \mu \varepsilon$ '+'(prediction)')
-        plt.legend()
-        plt.grid()
-        plt.savefig(f'{save}_confusionE.png') if not save == False else False
+            plt.xlabel(rf'$\Delta {uck[0]} [{units}]$ '+'(target)'     if 'K' in units else rf'$\Delta {units}$ '+'(target)')
+            plt.ylabel(rf'$\Delta {uck[0]} [{units}]$ '+'(prediction)' if 'K' in units else rf'$\Delta {units}$ '+'(prediction)')
+            handles, labels = plt.gca().get_legend_handles_labels()
+            by_label = dict(zip(labels, handles))
+            plt.legend(by_label.values(), by_label.keys())
+            plt.grid()
+            plt.savefig(f'{save}_confusion_{lck}.png') if not save == False else False
 
-        plt.show() if representation else False
+        plt.show() if representation and not layers else False
 
     if layers:
         print('Under construction')
+
+
 
 
 def linear_regression(x,a,b):

@@ -180,6 +180,8 @@ def get_dataloaders(self):
                     dataset=the_dataset(self.X[key],self.Y[key]),
                     batch_size=32,
                     shuffle=True)
+        self.X[key] = 'In data loader'
+        self.Y[key] = 'In data loader'
 
     # Re asign to object atribute
     self.dl = dl

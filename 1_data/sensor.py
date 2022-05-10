@@ -14,6 +14,10 @@ path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/Beca_SHM/98_data/0_CALIBRACIO
 CM2_obj = DATASETS(path_to_folder)
 #CM2_obj.save()
 
+CM2_obj.obr_filters('0_mm_20_grados.obr',['12.447_mm_50_grados.obr'],delta=200)
+exit()
+
+
 # %%
 CM2_obj.obr_TE('0_mm_20_grados.obr',['0_mm_30_grados.obr'],delta=300,type='flecha',eps=True);plt.suptitle('0_mm_30_grados.obr')
 CM2_obj.obr_TE('0_mm_20_grados.obr',['12.447_mm_20_grados.obr'],delta=300,type='flecha',eps=True);plt.suptitle('12_mm_20_grados.obr')

@@ -1,4 +1,5 @@
 *.pkl
+*.onnx
 *.pyc
 **/*tensorflow_env
 

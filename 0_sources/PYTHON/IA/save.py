@@ -52,6 +52,14 @@ def save_model(self):
 
     if isinstance(self.model, torch.nn.Module):
         torch.save(self.model.state_dict(),path_to)
+        input_names  = ['Cross correlations (concatenated)']
+        output_names = ['Temperature','Deformation']
+        batch = torch.randn(1,12001)
+        try:
+            torch.onnx.export(self.model, batch, path_to.replace('pkl','onnx'), input_names=input_names, output_names=output_names)
+        except Exception as e:
+            print('Error while exporting model in ONNX format')
+            print(e)
     else:
         try:
             with open(path_to, 'wb') as outp:
@@ -78,7 +86,8 @@ def save_scalers(self,path_to=[None,None]):
 
 def save_IA(self,path_to=None):
 
-    IA_obj = self; print('error in save_IA') if IA_obj is self else False
+    from copy import copy
+    IA_obj = copy(self); print('error in save_IA') if IA_obj is self else False
     IA_obj.name = self.name.replace('.pkl',f'_IA.pkl')
 
     # Emtpy dictionaries
