@@ -40,13 +40,13 @@ class DATASETS(object):
 
         # Tries to load dataset object, else, if not found, creates one
         try:
-            print('\nOBJECT FOUND IN PATH')
+            print('\nDATASET OBJECT FOUND IN PATH')
             self.load()
 
         except Exception as e:
 
             if 'No such file or directory' in str(e):
-                print('\nNO OBJECT FOUND IN PATH')
+                print('\nNO DATASET OBJECT FOUND IN PATH')
                 print('Creating new one \n')
             else:
                 print(e)
@@ -116,7 +116,7 @@ class DATASETS(object):
 
     from .conditions import genCONDITIONStemplate
 
-    from .obr import obr, computeOBR, genOBRbook, obr_ss, obr_TE, local_analysis, obr_filters
+    from .obr import obr, computeOBR, genOBRbook, obr_ss, obr_TE, local_analysis, obr_fit_filters, obr_filters
 
     from .obr2slices import obr2slices, gen_slices, genSLICESbook
 

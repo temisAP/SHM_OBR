@@ -188,3 +188,15 @@ def get_status(filename):
     flecha = float(flecha)
 
     return temperature, flecha
+
+def check_memory(percentage=90,timeout = 60):
+
+    import time
+    import psutil
+
+    zero_time = float(time.time())
+    while psutil.virtual_memory()[2] > percentage:
+        print('Waiting for memory')
+        time.sleep(1)
+        if float(time.time())-zero_time > timeout:
+            exit()

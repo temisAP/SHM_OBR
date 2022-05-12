@@ -40,12 +40,12 @@ class IA(object):
         try:
 
             self.load()
-            print('\nOBJECT FOUND')
+            print('\nIA OBJECT FOUND')
 
         except Exception as e:
 
             if 'No such file or directory' in str(e):
-                print('\nNO OBJECT FOUND IN PATH')
+                print('\nNO IA OBJECT FOUND IN PATH')
                 print('Creating new one \n')
             else:
                 print(e)

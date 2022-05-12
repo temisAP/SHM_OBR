@@ -24,6 +24,6 @@ IA_obj = IA('./models',name='IA')
 
 IA_obj.load_model()
 IA_obj.load_scalers()
-IA_obj.results(confusion=True);
-IA_obj.save_model()
+#IA_obj.results(confusion=True);
+#IA_obj.save_model()
 IA_obj.save_IA()

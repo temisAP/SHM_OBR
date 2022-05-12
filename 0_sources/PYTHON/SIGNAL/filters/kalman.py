@@ -36,7 +36,7 @@ def kalman(z,Q=1e-5,R = 0.1**2,plot=False):
 
 
     # intial guesses
-    xhat[0] = 0.0
+    xhat[0] = z[0]
 
     for k in range(1,n_iter):
         # time update

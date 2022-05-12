@@ -160,7 +160,7 @@ def computeOBR(self):
 
 from .analisis.obr_ss import obr_ss
 from .analisis.obr_TE import obr_TE
-from .analisis.filters import obr_filters
+from .analisis.filters import obr_filters, obr_fit_filters
 
 
 def local_analysis(self,files,position):

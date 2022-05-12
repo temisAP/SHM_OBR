@@ -63,11 +63,15 @@ def local_sensor(P1,S1,P2,S2,f,IA_obj,display=False):
     t = [t,[Df]] # Append frequency step to have information about magnitude
     X = np.array([item for sublist in t for item in sublist])
     X = IA_obj.scalerX.transform(X)
-    X = torch.from_numpy( np.array(X.reshape(1,-1)) ).float().to(IA_obj.device) # Torch tensor in the same device as the model
 
     """ Call model """
 
-    T,E = IA_obj.model(X)
+    try:
+        X = torch.from_numpy( np.array(X.reshape(1,-1)) ).float()
+        T,E = IA_obj.model(X)
+    except:
+        X = torch.from_numpy( np.array(X.reshape(1,-1)) ).float().to(IA_obj.device) # Torch tensor in the same device as the model
+        T,E = IA_obj.model(X)
 
     predictions = IA_obj.scalerY.inverse_transform([T,E])
 
