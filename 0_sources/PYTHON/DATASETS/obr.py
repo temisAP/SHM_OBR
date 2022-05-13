@@ -28,6 +28,8 @@ def obr(self):
     self.genOBRbook()
     # Then open each one and reads relevant information in the specified segment
     self.computeOBR()
+    # Finally obr information is saved
+    self.save_obrfiles()
 
 def genOBRbook(self):
     """

@@ -114,6 +114,12 @@ class DATASETS(object):
         self.slices2dataset()
         self.save()
 
+        # After all of these an artificial intelligence must be generated and included in
+        # ---  this intelligence must be created with an "IA" object
+
+        self.obr2measures()
+        self.save()
+
     from .conditions import genCONDITIONStemplate
 
     from .obr import obr, computeOBR, genOBRbook, obr_ss, obr_TE, local_analysis, obr_fit_filters, obr_filters
@@ -121,6 +127,8 @@ class DATASETS(object):
     from .obr2slices import obr2slices, gen_slices, genSLICESbook
 
     from .slices2dataset import slices2dataset, genDATASETbook
+
+    from .obr2measures import obr2measures
 
     from .save import save
 
