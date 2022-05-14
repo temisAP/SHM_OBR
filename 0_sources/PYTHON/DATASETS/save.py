@@ -1,5 +1,5 @@
 import os
-import pickle
+import pickle5 as pickle
 
 def save(self):
     """ Save the object in the root of folder """
@@ -43,23 +43,23 @@ def save_something(self,object_to_save,path_to):
 
     # Save with pickle
     with open(path_to, 'wb') as outp:
-        pickle.dump(object_to_save.__dict__, outp, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(object_to_save, outp, pickle.HIGHEST_PROTOCOL)
     print('')
-    print(object_to_save,'saved in',path_to)
+    print('object saved in',path_to)
 
 def save_obrfiles(self):
 
     """ Save obrfiles once computed """
 
-    path_to = os.path.join(self.path,self.folders['1_PROCESSED'],self.name.replace('.pkl','_obrfiles.pkl'))
+    path_to = os.path.join(self.path,self.folders['1_PROCESSED'],self.INFO['obrfiles filename'])
     object_to_save = self.obrfiles
-    self.save_measures(object_to_save,path_to)
+    self.save_something(object_to_save,path_to)
 
 
 def save_measures(self):
 
     """ Save obrfiles once computed by the model to get measures """
 
-    path_to = os.path.join(self.path,self.folders['1_PROCESSED'],self.name.replace('.pkl','_measures.pkl'))
+    path_to = os.path.join(self.path,self.folders['1_PROCESSED'],self.INFO['measures filename'])
     object_to_save = self.measures
-    self.save_measures(object_to_save,path_to)
+    self.save_something(object_to_save,path_to)

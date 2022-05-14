@@ -72,7 +72,9 @@ class DATASETS(object):
             'slices book filename'  :   'slices_book.csv',
             'slices filename'       :   'slices.pkl',
             'dataset book filename' :   'dataset_book.csv',
-            'dataset filename'      :   'dataset.pkl'}
+            'dataset filename'      :   'dataset.pkl',
+            'obrfiles filename'     :   'obrfiles.pkl',
+            'measures filename'     :   'measures.pkl'}
 
             # OBR files as an object
             self.obrfiles = dict()
@@ -130,9 +132,9 @@ class DATASETS(object):
 
     from .obr2measures import obr2measures
 
-    from .save import save
+    from .save import save, save_obrfiles, save_measures, save_something
 
-    from .load import load, load_slices, load_dataset
+    from .load import load, load_slices, load_dataset, load_obrfiles, load_measures
 
     from .clear import clear_slices, clear_dataset
 
