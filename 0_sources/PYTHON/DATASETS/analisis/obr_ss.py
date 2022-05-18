@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from UTILS.utils import find_index
 from UTILS.read_obr import multi_read_obr
-from UTILS.sensor import sensor
 
 def obr_ss(self,REF,files=None,delta=2000,window=1000,type=None,eps=False):
     """

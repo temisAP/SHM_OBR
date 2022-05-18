@@ -6,17 +6,12 @@ import sys
 import os
 import time
 
-# For model loading
-import pickle
-import torch
-
 # Custom modules
-from .utils import printProgressBar
-sys.path.append(os.path.join(os.path.dirname(__file__), '../0_sources/PYTHON'))
-from IA import IA
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from UTILS.utils import printProgressBar
 
 
-def local_sensor(P1,S1,P2,S2,f,IA_obj,display=False):
+def local_sensor(self,P1,S1,P2,S2,f,display=False):
     """ Function to predict temperature and deformation in a narrow region.
 
         Scipy signal.correlate is used to determine the cross correlation and autocorrelations, then the
@@ -28,7 +23,6 @@ def local_sensor(P1,S1,P2,S2,f,IA_obj,display=False):
         :param  P2 (np.array)       : Reference state signal (p-polarization)
         :param  S2 (np.array)       : Reference state signal (s-polarization)
         :param  f  (np.array)       : Frequency domain x axis [GHz]
-        :param  IA_obj (IA object)  : IA object which contains all the information for temperature and deformation prediction
 
         :returns T (float)   : Temperature increment        [K]
         :returns E (float)   : Microdeformation increment   [με]
@@ -62,18 +56,18 @@ def local_sensor(P1,S1,P2,S2,f,IA_obj,display=False):
     """ Input """
     t = [t,[Df]] # Append frequency step to have information about magnitude
     X = np.array([item for sublist in t for item in sublist])
-    X = IA_obj.scalerX.transform(X)
+    X = self.IA_obj.scalerX.transform(X)
 
     """ Call model """
 
     try:
         X = torch.from_numpy( np.array(X.reshape(1,-1)) ).float()
-        T,E = IA_obj.model(X)
+        T,E = self.IA_obj.model(X)
     except:
-        X = torch.from_numpy( np.array(X.reshape(1,-1)) ).float().to(IA_obj.device) # Torch tensor in the same device as the model
-        T,E = IA_obj.model(X)
+        X = torch.from_numpy( np.array(X.reshape(1,-1)) ).float().to(self.IA_obj.device) # Torch tensor in the same device as the model
+        T,E = self.IA_obj.model(X)
 
-    predictions = IA_obj.scalerY.inverse_transform([T,E])
+    predictions = self.IA_obj.scalerY.inverse_transform([T,E])
 
     T = float( predictions[0][0].cpu().detach().numpy() ) + 0.6
     E = float( predictions[0][1].cpu().detach().numpy() ) - 27.0
@@ -84,7 +78,7 @@ def local_sensor(P1,S1,P2,S2,f,IA_obj,display=False):
     return T,E
 
 
-def sensor(Data,refData,f,delta=200,window=1000,display = False):
+def sensor(self,Data,refData,f,delta=200,window=1000,display = False):
 
     """ Computes relative spectral shift (spectralshift) between two signals in a given window
         :param Data     (np.array)  : current state signals
@@ -94,9 +88,6 @@ def sensor(Data,refData,f,delta=200,window=1000,display = False):
 
         :returns spectralshift (np.array)   : array with relative spectral shifts
     """
-
-    print('\n*Loading IA model')
-    IA_obj = IA('.',name='./IA')
 
     Ts = list()
     Es = list()
@@ -125,7 +116,7 @@ def sensor(Data,refData,f,delta=200,window=1000,display = False):
             P2 = refData[0][i-window:i+window]
             S2 = refData[1][i-window:i+window]
 
-            T,E = local_sensor(P1,S1,P2,S2,f,IA_obj,
+            T,E = self.local_sensor(P1,S1,P2,S2,f,
                                     display=True if (display==True and i==point) else False)
 
             Ts.append(float(T))
@@ -136,8 +127,7 @@ def sensor(Data,refData,f,delta=200,window=1000,display = False):
 
     print('*Segment computed!')
 
-    T = np.array(Ts)
-    E = np.array(Es)
-
+    seasonal,T = np.array(sm.tsa.filters.hpfilter(np.array(Ts), lamb=199))
+    seasonal,E = np.array(sm.tsa.filters.hpfilter(np.array(Es), lamb=199))
 
     return T,E

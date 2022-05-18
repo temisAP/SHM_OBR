@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from UTILS.utils import find_index
 from UTILS.read_obr import multi_read_obr
-from UTILS.sensor import sensor
 
 def obr_TE(self,REF,files=None,delta=2000,window=1000,type=None,eps=False):
     """
@@ -79,7 +78,7 @@ def obr_TE(self,REF,files=None,delta=2000,window=1000,type=None,eps=False):
             elif type == 'flecha':
                 T = int(self.obrfiles[file].flecha-self.obrfiles[REF].flecha)
 
-            TT,EE = sensor(Data,refData,f,delta=delta,window=window,display = False)
+            TT,EE = self.sensor(Data,refData,f,delta=delta,window=window,display = False)
             z = np.linspace(z[0],z[-1],len(TT))
 
             # Add real deformation to graph

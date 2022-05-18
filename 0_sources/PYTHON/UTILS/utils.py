@@ -22,6 +22,7 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
         print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\n')
 
 def find_index(array,value):
+
     """ Function to determine the closest index to some value
         :param array (list) :   list to be evaluated
         :param value (float):   value to reach
@@ -40,7 +41,6 @@ def find_index(array,value):
 
     elif isinstance(value, list) or type(value).__module__ == np.__name__:
         idx = list()
-        print(array)
         for val in value:
             idx.append((np.abs(array - val)).argmin())
         return idx

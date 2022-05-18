@@ -69,21 +69,9 @@ def obr2slices(self,delta=2000,window=1000):
 
     """
 
-    """ OBR checkout """
+    """ Checkouts """
 
-    # Check if obr files are already computed
-    if len(self.obrfiles) == 0:
-        print('\n', 'No obr book created, creating and computing ...','\n')
-        self.obr()
-
-    if not any([hasattr(obrfile, 'Data') for key, obrfile in self.obrfiles.items()]):
-        print('\n','No data in obr files, computing...','\n')
-        self.computeOBR()
-    else:
-        print('\n','OBR data already computed','\n')
-        pass
-
-    """ Slices checkout """
+    self.obr_checkout()
 
     # Check if slices were previously created
     if os.path.exists(os.path.join(self.path,self.folders['2_SLICES'],self.INFO['slices filename'])):
@@ -135,10 +123,7 @@ def gen_slices(self,obrfile,slices_obj,delta=2000,window=1000):
     """ Checkout and initialization """
 
     # Conditions file checkout
-    if not os.path.exists(conditions_file):
-        print('\nNo conditions file found')
-        self.genCONDITIONStemplate()
-        exit()
+    self.conditions_checkout()
 
     # Column names and slice initialization
     a_slice_obj = a_slice()

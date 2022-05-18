@@ -66,3 +66,23 @@ def load_measures(self):
         print('MEASURES FOUND')
     else:
         print('NO MEASURES FOUND')
+
+def load_fiber_distribution(self):
+
+    path_to = os.path.join(os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['fiber distribution filename']))
+
+    if os.path.exists(path_to):
+        with open(path_to_dataset, 'rb') as inp:
+            self.measures.__dict__ = pickle.load(inp)
+        print('FIBER DISTRIBUTION FOUND')
+    else:
+        print('NO FIBER DISTRIBUTION FOUND')
+
+def load_IA_obj(self,path_to):
+
+    if os.path.exists(path_to):
+        with open(path_to, 'rb') as inp:
+            self.IA_obj = pickle.load(inp)
+        print('IA FOUND')
+    else:
+        print('NO IA FOUND')

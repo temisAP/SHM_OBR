@@ -221,7 +221,7 @@ def get_status(filename):
         flecha = filename.split('_')[0]
         temperature = filename.split('_')[2]
     else:
-        print('ERROR: File format not recognized')
+        #print('ERROR: File format not recognized')
         return '?','?'
 
     # Convert temperature to float

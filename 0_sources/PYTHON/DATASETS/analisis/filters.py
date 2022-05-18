@@ -12,7 +12,6 @@ import random
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from UTILS.utils import find_index, check_memory
 from UTILS.read_obr import multi_read_obr
-from UTILS.sensor import sensor
 from SIGNAL.filters.optimized import optimize
 
 
@@ -132,7 +131,7 @@ def obr_filters(self,REF,file,
 
         # Create filtered predictions
 
-        TT,EE = sensor(Data,refData,f,delta=delta,window=window,display = False)
+        TT,EE = self.sensor(Data,refData,f,delta=delta,window=window,display = False)
         z = np.linspace(z[0],z[-1],len(TT))
 
         prediction = EE if type == 'deformation' else TT

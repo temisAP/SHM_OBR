@@ -14,7 +14,7 @@ class DATASETS(object):
     def __init__(self,path=None,showpath=False):
 
         # Launch GUI if no path is provided
-        if path is None:
+        if not path:
             from .PathSelector import PathSelector
             import tkinter as tk
             # Initialize gui
@@ -34,7 +34,7 @@ class DATASETS(object):
         self.path = os.path.abspath(path)
         self.name = f'{os.path.basename(os.path.normpath(path))}.pkl'
 
-        # Just to chek it
+        # Just to check it
         if showpath:
              print(os.listdir(self.path))
 
@@ -67,17 +67,21 @@ class DATASETS(object):
 
             # Information filenames
             self.INFO = {
-            'obr book filename'     :   'obr_book.csv',
-            'conditions filename'   :   'conditions.csv',
-            'slices book filename'  :   'slices_book.csv',
-            'slices filename'       :   'slices.pkl',
-            'dataset book filename' :   'dataset_book.csv',
-            'dataset filename'      :   'dataset.pkl',
-            'obrfiles filename'     :   'obrfiles.pkl',
-            'measures filename'     :   'measures.pkl'}
+            'obr book filename'             :   'obr_book.csv',
+            'conditions filename'           :   'conditions.csv',
+            'slices book filename'          :   'slices_book.csv',
+            'slices filename'               :   'slices.pkl',
+            'dataset book filename'         :   'dataset_book.csv',
+            'dataset filename'              :   'dataset.pkl',
+            'obrfiles filename'             :   'obrfiles.pkl',
+            'measures filename'             :   'measures.pkl',
+            'fiber distribution filename'   :   'fiber_distribution.txt'}
 
             # OBR files as an object
             self.obrfiles = dict()
+
+            # IA object
+            self.IA_obj = object()
 
 
     def compute(self):
@@ -122,6 +126,10 @@ class DATASETS(object):
         self.obr2measures()
         self.save()
 
+    from .take_a_look import take_a_look
+
+    from .checkouts import conditions_checkout, obr_checkout
+
     from .conditions import genCONDITIONStemplate
 
     from .obr import obr, computeOBR, genOBRbook, obr_ss, obr_TE, local_analysis, obr_fit_filters, obr_filters
@@ -132,10 +140,16 @@ class DATASETS(object):
 
     from .obr2measures import obr2measures
 
+    from .sensor import sensor, local_sensor
+
     from .save import save, save_obrfiles, save_measures, save_something
 
-    from .load import load, load_slices, load_dataset, load_obrfiles, load_measures
+    from .load import load, load_slices, load_dataset, load_obrfiles, load_measures, load_IA_obj
 
     from .clear import clear_slices, clear_dataset
 
     from .plots import dataset_plot
+
+    from .curados.distribution import fiber_distribution
+
+    from .curados.evol1D import curing_evol1D
