@@ -61,6 +61,7 @@ def curing_evol1D(self,points,REF=None,files=None,val='ss',plot=True):
 
     # Get all distributions
     val_distributions = list()
+    time_distribution = list()
     for file in files:
         if val == 'ss':
             val_distribution = self.measures[REF][file].ss
@@ -70,9 +71,13 @@ def curing_evol1D(self,points,REF=None,files=None,val='ss',plot=True):
             ylabel = r'$\Delta T$[K]'
         elif val == 'def':
             val_distribution = self.measures[REF][file].E
-            ylabel = r'$\Delta \mu varepsilon$'
+            ylabel = r'$\Delta \mu \varepsilon$'
 
         val_distributions.append(val_distribution)
+
+        file_time = datetime.strptime(self.obrfiles[file].date,"%Y,%m,%d,%H:%M:%S")
+        elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60
+        time_distribution.append(elapsed_time)
 
     z = self.measures[REF][file].x * 1e3 # mm to m
 
@@ -97,21 +102,29 @@ def curing_evol1D(self,points,REF=None,files=None,val='ss',plot=True):
     if plot:
 
         plt.figure()
-        sample_idxs = sample(range(len(files)),8)
-        for idx in sample_idxs:
-
-            file_time = datetime.strptime(self.obrfiles[files[idx]].date,"%Y,%m,%d,%H:%M:%S")
-            elapsed_time = file_time - REF_time
-
-            plt.plot(z,val_distributions[idx],label=elapsed_time/60)
+        max_elapsed_time = REF_time - REF_time; max_elapsed_time = max_elapsed_time.total_seconds() / 60
+        for idx,file in enumerate(files):
+            if idx%3 == 0:
+                file_time = datetime.strptime(self.obrfiles[files[idx]].date,"%Y,%m,%d,%H:%M:%S")
+                elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60  # seconds to minutes
+                max_elapsed_time = elapsed_time if elapsed_time > max_elapsed_time else max_elapsed_time
+                plt.plot(z,val_distributions[idx],color=plt.cm.jet(find_index(time_distribution,elapsed_time)/len(time_distribution)))
 
         for point in points:
-            plt.axvline(point,color='black')
+            plt.axvline(point,linestyle='--',color='black',label='Point chosen')
+
+
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=0, vmax=max_elapsed_time))
+        cbar = plt.colorbar(sm,spacing='proportional')
+        cbar.set_label('Elapsed\ntime\n[min]',rotation=0,labelpad=15)
+        plt.xlabel('z [m]')
+        plt.ylabel(ylabel,fontsize=20,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
+
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.legend(by_label.values(), by_label.keys())
 
         plt.grid()
-        plt.legend()
-        plt.xlabel('z [m]')
-        plt.ylabel(ylabel,fontsize=20).set_rotation(0)
         plt.show()
 
         plt.figure()
@@ -122,7 +135,7 @@ def curing_evol1D(self,points,REF=None,files=None,val='ss',plot=True):
         plt.grid()
         plt.legend()
         plt.xlabel('Elapsed time [min]')
-        plt.ylabel(ylabel,fontsize=20).set_rotation(0)
+        plt.ylabel(ylabel,fontsize=20,labelpad=30).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         plt.show()
 
     return all_times,all_vals

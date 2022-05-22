@@ -18,9 +18,12 @@ class obrfile(object):
 
         obrfile_obj.filename       = filename
         obrfile_obj.name           = filename.replace('.obr','')
-        obrfile_obj.temperature    = temperature
-        obrfile_obj.flecha         = flecha
+        obrfile_obj.temperature    = temperature    # C⁰
+        obrfile_obj.flecha         = flecha         # mm
         obrfile_obj.date           = date
+        obrfile_obj.f              = None           # GHz
+        obrfile_obj.z              = None           # m
+        obrfile_obj.Data           = None           # H, P, S
 
 def obr(self):
 

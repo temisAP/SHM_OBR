@@ -73,7 +73,7 @@ def load_fiber_distribution(self):
 
     if os.path.exists(path_to):
         with open(path_to_dataset, 'rb') as inp:
-            self.measures.__dict__ = pickle.load(inp)
+            self.fiber_distribution.__dict__ = pickle.load(inp)
         print('FIBER DISTRIBUTION FOUND')
     else:
         print('NO FIBER DISTRIBUTION FOUND')
@@ -82,7 +82,7 @@ def load_IA_obj(self,path_to):
 
     if os.path.exists(path_to):
         with open(path_to, 'rb') as inp:
-            self.IA_obj = pickle.load(inp)
+            self.IA_obj.__dict__ = pickle.load(inp)
         print('IA FOUND')
     else:
         print('NO IA FOUND')

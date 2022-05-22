@@ -20,12 +20,15 @@ def take_a_look(self,REF,files,limit1=0, limit2 = 20, delta = 300, window = 1000
         if val == 'ss':
             spectralshift = global_spectral_shift(refData[0],Data[file][0],f,delta=delta,window=window)
             val_distribution = spectralshift
+            ylabel = r'$-\frac{\Delta \nu}{\bar{\nu}}$'
         elif val == 'temp':
             T,E = self.sensor(Data[file],refData,f,delta=delta,window=window,display = False)
             val_distribution = T
+            ylabel = r'$\Delta T$[K]'
         elif val == 'def':
             T,E = self.sensor(Data[file],refData,f,delta=delta,window=window,display = False)
             val_distribution = E
+            ylabel = r'$\Delta \mu \varepsilon$'
 
         val_distributions.append(val_distribution)
 
@@ -36,8 +39,8 @@ def take_a_look(self,REF,files,limit1=0, limit2 = 20, delta = 300, window = 1000
     if plot:
         plt.figure()
         for file, val_distribution in zip(files, val_distributions):
-            plt.plot(z,val_distribution, label=file)
-        plt.ylabel(val)
+            plt.plot(z,val_distribution, label=f'{file}')
+        plt.ylabel(ylabel,fontsize=20,labelpad=15).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         plt.xlabel('z [m]')
         plt.legend()
         plt.grid()

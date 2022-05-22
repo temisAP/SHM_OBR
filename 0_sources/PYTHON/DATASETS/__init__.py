@@ -2,6 +2,9 @@ import os
 import sys
 import pandas as pd
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from IA import IA
+
 
 class DATASETS(object):
     """
@@ -81,7 +84,7 @@ class DATASETS(object):
             self.obrfiles = dict()
 
             # IA object
-            self.IA_obj = object()
+            self.IA_obj = IA(self.path,name='IA')
 
 
     def compute(self):
@@ -153,3 +156,5 @@ class DATASETS(object):
     from .curados.distribution import fiber_distribution
 
     from .curados.evol1D import curing_evol1D
+
+    from .analisis.birds.A0_birds import birds

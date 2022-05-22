@@ -45,7 +45,7 @@ def find_index(array,value):
             idx.append((np.abs(array - val)).argmin())
         return idx
     else:
-        print('Type not suported')
+        print(f'find_index error [Type not suported: {type(value)}]')
         exit()
 
 
