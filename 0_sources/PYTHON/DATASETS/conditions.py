@@ -23,7 +23,9 @@ def genCONDITIONStemplate(self):
             'limit2\n[m]'       : [-1],
             'L\n[mm]'           : [1],
             't\n[mm]'           : [1],
-            'alpha\n[µm/(m·K)]' : [0]})
+            'alpha\n[µm/(m·K)]' : [0],
+            'default state'     : [0]})
+
     df.to_csv(os.path.join(self.path,self.folders['4_INFORMATION'],name), index=False)
 
     # Create a .txt to explain
@@ -32,9 +34,11 @@ def genCONDITIONStemplate(self):
     info += 'L: \t is the lenght of the beam where the fiber is attached in order to perform a flexural test on [mm]\n'
     info += 't: \t is the thickness of the beam [mm] \n'
     info += 'alpha \t stands for CTE [µm/(m·K)] \n'
+    info += 'default state is the file which will be taken as reference by default'
     info += '\n'
     info += '\n'
     info += 'Set L and y as 1 and alpha as 0 if the fiber is not glued anywhere'
+    info += ''
 
     with open(os.path.join(self.path,self.folders['4_INFORMATION'],name.replace('.csv','.txt')), 'w') as f:
         f.write(info)

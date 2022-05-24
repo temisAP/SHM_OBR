@@ -25,5 +25,5 @@ CM2_obj.birds(sample_files)
 #CM2_obj.local_analysis(['0_mm_30_grados.obr','12.447_mm_50_grados.obr'],position = 5.1)
 #CM2_obj.local_analysis(['12.447_mm_50_grados.obr','0_mm_30_grados.obr'],position = 5.1)
 
-CM2_obj.save()
+#CM2_obj.save()
 #exit()

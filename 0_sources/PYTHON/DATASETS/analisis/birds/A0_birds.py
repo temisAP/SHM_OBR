@@ -1,5 +1,4 @@
 from .A1_Representation import Representation
-from .A2_STFT import STFT
 from .A3_Spectrogram import Spectrogram
 from .A4_Mel_spectrogram import Mel_spectrogram
 from .A5_Zero_crossing_rate import Zero_crossing_rate
@@ -15,12 +14,31 @@ def birds(self,sample_files):
     for file in sample_files:
         sample_signals[file] = self.obrfiles[file]
 
+
+
     #Representation(sample_signals)
     #Spectrogram(sample_signals)
-    Mel_spectrogram(sample_signals)
-    Zero_crossing_rate(self.slices)
-    Harmonics_and_perceptual(sample_signals)
-    Spectral_centroid(sample_signals)
+    #Mel_spectrogram(sample_signals)
+    #Zero_crossing_rate(self,sample_size = 100)
+    #Harmonics_and_perceptual(sample_signals)
+    #Spectral_centroid(sample_signals,type = 'Module-Phase')
+    #Spectral_centroid(sample_signals,type = 'Real-Imaginary')
     Chroma_frequencies(sample_signals)
-    BPM(self.slices)
-    Spectral_rolloff(sample_signals)
+    #BPM(self,sample_size=25)
+    #Spectral_rolloff(sample_signals,type = 'Module-Phase')
+    #Spectral_rolloff(sample_signals,type = 'Real-Imaginary')
+
+    # To be created
+
+    #chroma_cqt
+    #chroma_cens
+    #mfcc
+    #rms
+    #spectral_bandwidth
+    #spectral_contrast
+    #spectral_flatness
+    #poly_features
+    #toneetz
+
+    #tempogram
+    #fourier_tempogram

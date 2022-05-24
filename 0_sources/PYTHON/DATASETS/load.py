@@ -26,7 +26,9 @@ def load_slices(self):
 
     if os.path.exists(path_to):
         from .obr2slices import slices
-        return slices(path_to,name)
+        the_slices = slices(path_to,name)
+        self.slices = the_slices.slices
+        return self.slices
         print('SLICES FOUND')
     else:
         print('NO SLICES FOUND')
