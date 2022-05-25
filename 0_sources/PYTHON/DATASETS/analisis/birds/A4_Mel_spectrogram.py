@@ -20,6 +20,7 @@ def Mel_spectrogram(samples,
     components = [magnitude]
 
     data, ylabels = create_data_and_ylabels(sample_keys,states,components)
+    c_data, c_ylabels   = create_data_and_ylabels(sample_keys,states,components)
 
 
     for i, sample, sample_key in zip(range(len(samples.keys())), samples.values(), samples.keys()):
@@ -48,6 +49,15 @@ def Mel_spectrogram(samples,
             # Create the Mel Spectrograms
             wave = librosa.feature.melspectrogram(y = wave, sr=new_sr, n_mels=128)
 
+            # 2D correlation of the signals
+            if i == 0 and j == 0:
+                ref_data = wave
+
+            # Correlation between signals
+            c_data[sample_key][state][magnitude] = [correlation2D(ref_data,wave), new_sr]
+            c_ylabels[sample_key][state] =  rf'$T = {Temperature}\: Cº$'+'\n'+ rf'$\delta = {Flecha}\: mm$'
+
+
             # Amplitude to dB
             wave = librosa.amplitude_to_db(wave, ref = np.max)
 
@@ -61,4 +71,5 @@ def Mel_spectrogram(samples,
 
     # Plot
     a_plot(data,ylabels,hop_length = hop_length, x_axis = 'time', y_axis = 'mel',dB = True)
+    a_plot(c_data,c_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = 'log',dB = True)
     plt.show()

@@ -17,13 +17,13 @@ def birds(self,sample_files):
 
 
     #Representation(sample_signals)
-    #Spectrogram(sample_signals)
+    Spectrogram(sample_signals)
     #Mel_spectrogram(sample_signals)
     #Zero_crossing_rate(self,sample_size = 100)
     #Harmonics_and_perceptual(sample_signals)
     #Spectral_centroid(sample_signals,type = 'Module-Phase')
     #Spectral_centroid(sample_signals,type = 'Real-Imaginary')
-    Chroma_frequencies(sample_signals)
+    #Chroma_frequencies(sample_signals)
     #BPM(self,sample_size=25)
     #Spectral_rolloff(sample_signals,type = 'Module-Phase')
     #Spectral_rolloff(sample_signals,type = 'Real-Imaginary')

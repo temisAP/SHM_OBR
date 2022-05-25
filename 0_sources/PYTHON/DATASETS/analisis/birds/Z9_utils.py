@@ -188,7 +188,7 @@ def a_plot(data,ylabels,
                             wspace=0.015)
 
 
-def correlation2D(Z1,Z2,axis=1):
+def correlation2D(Z1,Z2,axis=0):
 
     """ Function to compute correlation along some axis between two 2D arrays
 
@@ -201,10 +201,14 @@ def correlation2D(Z1,Z2,axis=1):
 
 
     corr2D = list()
-    for x in range(P.shape[axis]):
+    for x in range(Z1.shape[axis]):
 
-        Y1 = P[:,x]
-        Y2 = S[:,x]
+        if axis == 0:
+            Y1 = Z1[x,:]
+            Y2 = Z2[x,:]
+        elif axis == 1:
+            Y1 = Z1[:,x]
+            Y2 = Z2[:,x]
 
         # Normalization
         Y1 = (Y1 - np.mean(Y1)) / (np.std(Y1) * len(Y1))
@@ -213,6 +217,30 @@ def correlation2D(Z1,Z2,axis=1):
         # Cross corelation
         corr = np.correlate(Y1, Y2, mode='same')
 
+        corr2D.append(corr)
 
+    corr2D = np.array(corr2D)
 
-    return np.array(corr2D)
+    if axis == 1:
+        corr2D = corr2D.T
+
+    return corr2D
+
+def ss_2D(Z1,Z2,axis=0):
+
+    """ Function to spectral_shift along some axis between two 2D arrays
+
+        : param Z1 (2D array): First 2D array to compute correlation
+        : param Z2 (2D array): Second 2D array to compute correlation
+
+        : optional axis (int): Axis to go
+
+        : return corr2D (2D np.array): Array which contains correlation between arrays"""
+
+    corr2D = correlation2D(Z1,Z2,axis=axis)
+
+    ss_array = np.zeros_like(corr2D)
+
+    arg_maxs = np.argmax(corr2D, axis=axis)
+
+    return arg_maxs
