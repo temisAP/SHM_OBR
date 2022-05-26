@@ -8,7 +8,7 @@ import numpy as np
 def Representation(samples):
 
     sample_keys = samples.keys()
-    states = ['P','S']
+    states = [r'$P(z)$',r'$S(z)$']
     components = ['Real', 'Imaginary']
 
     data, ylabels = create_data_and_ylabels(sample_keys,states,components)
@@ -20,6 +20,7 @@ def Representation(samples):
         sr = int(1/(sample.z[1]-sample.z[0]))
 
         for j, state in enumerate(states):
+            j+=1
 
             wave, new_sr = arr2librosa(sample.Data[j],sr)
 

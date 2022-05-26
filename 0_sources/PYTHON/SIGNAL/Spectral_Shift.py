@@ -79,7 +79,7 @@ def local_spectral_shift(y1,y2,f,display=False):
     return -1*spectralshift/np.mean(f)
 
 
-def global_spectral_shift(y1,y2,f,delta=200,window=1000,display = False):
+def global_spectral_shift(y1,y2,f,delta=200,window=1000,display = False,progressbar=False):
     """ Computes relative spectral shift (spectralshift) between two signals in a given window
         :param y1       (np.array)  : first signal
         :param y2       (np.array)  : second signal
@@ -88,8 +88,6 @@ def global_spectral_shift(y1,y2,f,delta=200,window=1000,display = False):
 
         :returns spectralshift (np.array)   : array with relative spectral shifts
     """
-
-    print('*Computing relative spectral shift')
 
     spectralshift = []
     steps = range(window,len(y1)-window+1,delta)
@@ -106,7 +104,6 @@ def global_spectral_shift(y1,y2,f,delta=200,window=1000,display = False):
         point = min(steps, key=lambda x:abs(x-point))
 
 
-    printProgressBar(0, len(y1)-window-delta-1, prefix = 'Progress:', suffix = 'Complete', length = 50)
     for i in steps:
 
             yy1 = y1[i-window:i+window]
@@ -118,9 +115,8 @@ def global_spectral_shift(y1,y2,f,delta=200,window=1000,display = False):
             if display==True and i==point:
                 diff = local_spectral_shift(yy1,yy2,f,display=True)
 
-            printProgressBar(i + 1, len(y1)-window-delta-1, prefix = 'Progress:', suffix = 'Complete', length = 50)
+            printProgressBar(i + 1, len(y1)-window-delta-1, prefix = 'Computing spectral shift:', suffix = 'Complete', length = 50) if progressbar else None
 
-    print('*Relative spectral shift done!')
 
     spectralshift = np.array(spectralshift)
 

@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-def arr2librosa(array,sr):
+def arr2librosa(array,sr=None):
 
     """ Function to create a .wav file from a numpy array and later open it with librosa
 
@@ -30,6 +30,9 @@ def arr2librosa(array,sr):
 
             """
 
+    if not sr:
+        sr = len(array)
+
     if any(np.iscomplex(array)):
 
         class a_wave(object):
@@ -42,19 +45,19 @@ def arr2librosa(array,sr):
         wave = a_wave()
 
         write('temp.wav', sr, array.real)
-        wave.real, new_sr  = librosa.load('temp.wav')
+        wave.real, new_sr  = librosa.load('temp.wav',sr = sr)
         os.remove('temp.wav')
 
         write('temp.wav', sr, array.imag)
-        wave.imag, new_sr = librosa.load('temp.wav')
+        wave.imag, new_sr = librosa.load('temp.wav',sr = sr)
         os.remove('temp.wav')
 
         write('temp.wav', sr, np.abs(array))
-        wave.mod, new_sr  = librosa.load('temp.wav')
+        wave.mod, new_sr  = librosa.load('temp.wav',sr = sr)
         os.remove('temp.wav')
 
         write('temp.wav', sr, np.angle(array))
-        wave.phase, new_sr = librosa.load('temp.wav')
+        wave.phase, new_sr = librosa.load('temp.wav',sr = sr)
         os.remove('temp.wav')
 
     else:
@@ -62,6 +65,8 @@ def arr2librosa(array,sr):
         write('temp.wav', sr, array)
         wave, new_sr = librosa.load('temp.wav')
         os.remove('temp.wav')
+
+
 
     return wave, new_sr
 
@@ -80,7 +85,7 @@ def create_data_and_ylabels(sample_keys,states,components):
     return data, ylabels
 
 def a_plot(data,ylabels,
-            type='librosa', alpha = 0.6,  linewidth = 0.5,
+            type='librosa', alpha = 0.6,  linewidth = 0.5,linestyle = '-o',
             cmap='jet',x_axis = 'time', y_axis = 'log', hop_length=None, dB = False):
 
     """ Plot waves specified in data
@@ -118,7 +123,7 @@ def a_plot(data,ylabels,
                     if type == 'librosa':
                         librosa.display.waveshow(y = val[0], sr = val[1], label=key, ax=ax[i,j],alpha = alpha, linewidth = linewidth)
                     else:
-                        ax[i,j].plot(val[0], val[1],'o-',label=key,alpha = alpha, linewidth = linewidth)
+                        ax[i,j].plot(val[0], val[1],linestyle,label=key,alpha = alpha, linewidth = linewidth)
 
                 elif plot_type == '2D':
 
@@ -130,7 +135,7 @@ def a_plot(data,ylabels,
             plt.tight_layout()
 
             # Column title
-            ax[0,j].set_title(rf'${state}(z)$',fontsize=12)
+            ax[0,j].set_title(state,fontsize=12)
 
             # y axis, label just at left and without offsetText (which is displayed in the axis label)
             plt.setp(ax[i,1].get_yticklabels(), visible=False)
@@ -151,9 +156,7 @@ def a_plot(data,ylabels,
             ax[i,j].grid()
 
 
-    # Put a general legend at the bottom of the figure
-    handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
+
 
     # Make all y and x axis equal to conserve reference
     for i in range(len(samples)):
@@ -163,7 +166,11 @@ def a_plot(data,ylabels,
 
     y_limits = [a.get_ylim() for a in  fig.axes[:-1]] ; y_limits = [item for tuple in y_limits for item in tuple]
     plt.setp(ax, ylim=(min(y_limits) , max(y_limits)))
-    plt.figlegend(by_label.values(), by_label.keys(),loc='lower center',ncol=2,fancybox=False, shadow=False)
+
+    # Put a general legend at the bottom of the figure
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    plt.figlegend(by_label.values(), by_label.keys(),loc='lower center',ncol=2,fancybox=False, shadow=False) if plot_type == '1D' else None
 
     if plot_type == '1D':
         # Subplots adjustment with no gaps
@@ -188,17 +195,19 @@ def a_plot(data,ylabels,
                             wspace=0.015)
 
 
-def correlation2D(Z1,Z2,axis=0):
+def correlation2D(Z1,Z2,axis=1):
 
     """ Function to compute correlation along some axis between two 2D arrays
 
         : param Z1 (2D array): First 2D array to compute correlation
         : param Z2 (2D array): Second 2D array to compute correlation
 
+            Input arrays are assumed to be
+                Z1[f,z] where f is the frequency and z is the lenght
+
         : optional axis (int): Axis to go
 
         : return corr2D (2D np.array): Array which contains correlation between arrays"""
-
 
     corr2D = list()
     for x in range(Z1.shape[axis]):
@@ -211,8 +220,8 @@ def correlation2D(Z1,Z2,axis=0):
             Y2 = Z2[:,x]
 
         # Normalization
-        Y1 = (Y1 - np.mean(Y1)) / (np.std(Y1) * len(Y1))
-        Y2 = (Y2 - np.mean(Y2)) / (np.std(Y2))
+        #Y1 = (Y1 - np.mean(Y1)) / (np.std(Y1) * len(Y1))
+        #Y2 = (Y2 - np.mean(Y2)) / (np.std(Y2))
 
         # Cross corelation
         corr = np.correlate(Y1, Y2, mode='same')
@@ -224,9 +233,10 @@ def correlation2D(Z1,Z2,axis=0):
     if axis == 1:
         corr2D = corr2D.T
 
+
     return corr2D
 
-def ss_2D(Z1,Z2,axis=0):
+def ss_2D(Z1,Z2,axis=1):
 
     """ Function to spectral_shift along some axis between two 2D arrays
 
@@ -244,3 +254,19 @@ def ss_2D(Z1,Z2,axis=0):
     arg_maxs = np.argmax(corr2D, axis=axis)
 
     return arg_maxs
+
+def custom_stft(y,window=2000,delta=200):
+
+        stft  = list()
+        steps = range(window,len(y)-window+1,delta)
+
+        for i in steps:
+
+                yy = y[i-window:i+window]
+
+                YY = np.fft.fft(yy)
+                stft.append(YY)
+
+        stft = np.array(stft)
+
+        return stft.T

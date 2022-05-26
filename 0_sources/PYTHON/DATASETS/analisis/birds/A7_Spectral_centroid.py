@@ -8,7 +8,7 @@ import sklearn
 def Spectral_centroid(samples,type='Real-Imaginary'):
 
     sample_keys = samples.keys()
-    states = ['P','S']
+    states = [r'$P(z)$',r'$S(z)$']
 
     if type == 'Real-Imaginary':
         components = dict.fromkeys(['Real','Imaginary'])
@@ -25,7 +25,8 @@ def Spectral_centroid(samples,type='Real-Imaginary'):
         Flecha = sample.flecha
         sr = int(1/(sample.z[1]-sample.z[0]))
 
-        for j, state in enumerate(['P','S']):
+        for j, state in enumerate(states):
+            j+=1
 
             # np.array to librosa stuff
             wave, new_sr = arr2librosa(sample.Data[j],sr)

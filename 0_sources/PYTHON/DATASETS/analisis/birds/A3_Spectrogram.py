@@ -2,11 +2,12 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import librosa
 import librosa.display
-from .Z9_utils import arr2librosa, a_plot, create_data_and_ylabels, correlation2D, ss_2D
+from .Z9_utils import arr2librosa, a_plot, create_data_and_ylabels, correlation2D, ss_2D, custom_stft
 import numpy as np
+import scipy
 
 
-def Spectrogram(samples,n_fft=2000, hop_length= 100,magnitude = 'module',cmap='jet'):
+def Spectrogram(samples,n_fft=2000, hop_length= 200,magnitude = 'module',cmap='jet'):
 
     print('\nSpectrogram:')
     print(' magnitude:', magnitude)
@@ -14,12 +15,15 @@ def Spectrogram(samples,n_fft=2000, hop_length= 100,magnitude = 'module',cmap='j
     print(' hop_length =',hop_length)
 
     sample_keys = samples.keys()
-    states = ['P','S']
+    states = [r'$P(z)$',r'$S(z)$']
     components = [magnitude]
 
     data, ylabels       = create_data_and_ylabels(sample_keys,states,components)
     c_data, c_ylabels   = create_data_and_ylabels(sample_keys,states,components)
     ss_data, ss_ylabels = create_data_and_ylabels(sample_keys,states,components)
+
+    ref_data = [[0],[0]]
+    base_corr = [[0],[0]]
 
 
     for i, sample, sample_key in zip(range(len(samples.keys())), samples.values(), samples.keys()):
@@ -29,32 +33,45 @@ def Spectrogram(samples,n_fft=2000, hop_length= 100,magnitude = 'module',cmap='j
         sr = int(1/(sample.z[1]-sample.z[0]))
 
         for j, state in enumerate(states):
+            j+=1
+
+            # Short-time Fourier transform (STFT)
+            wave, new_sr = arr2librosa(sample.Data[j],sr)
+            wave = (wave.real**2 + wave.imag**2)**0.5
+
 
             # np.array module to librosa stuff
             if magnitude == 'module' or magnitude == 'abs':
-                wave, new_sr = arr2librosa(np.abs(sample.Data[j]),sr)
+                wave = np.abs(librosa.stft(wave, n_fft = n_fft, hop_length = hop_length))
             elif magnitude == 'phase' or magnitude == 'angle':
-                wave, new_sr = arr2librosa(np.angle(sample.Data[j]),sr)
+                wave = np.angle(librosa.stft(wave, n_fft = n_fft, hop_length = hop_length))
             elif magnitude == 'real':
-                wave, new_sr = arr2librosa(sample.Data[j].real,sr)
+                wave = librosa.stft(wave, n_fft = n_fft, hop_length = hop_length)
+                wave = wave.real
             elif magnitude == 'imag':
-                wave, new_sr = arr2librosa(sample.Data[j].imag,sr)
+                wave = librosa.stft(wave, n_fft = n_fft, hop_length = hop_length)
+                wave = wave.imag
             else:
                 print('Invalid magnitude. Chose between: "module", "phase", "real" or "imag"')
 
-            # Short-time Fourier transform (STFT)
-            wave = np.abs(librosa.stft(wave, n_fft = n_fft, hop_length = hop_length))
 
-            # 2D correlation of the signals
-            if i == 0 and j == 0:
-                ref_data = wave
+            f,t,wave = scipy.signal.stft(sample.Data[j], fs=sr, nperseg=hop_length, noverlap=None, nfft=n_fft, detrend=False, return_onesided=True, boundary='zeros', padded=True, axis=- 1)
+            wave = np.abs(wave)
+
+            wave = np.abs(custom_stft(sample.Data[j]))
+
+            # Reference state
+            if i == 0:
+                ref_data[j-1] = wave
+                base_corr[j-1] = correlation2D(ref_data[j-1],ref_data[j-1],axis=1)
 
             # Correlation between signals
-            c_data[sample_key][state][magnitude] = [correlation2D(ref_data,wave,axis=1), new_sr]
+            c_data[sample_key][state][magnitude] = [correlation2D(ref_data[j-1],wave,axis=1)-base_corr[j-1], new_sr]
+
             c_ylabels[sample_key][state] =  rf'$T = {Temperature}\: Cº$'+'\n'+ rf'$\delta = {Flecha}\: mm$'
 
             # SS between signals
-            ss = ss_2D(ref_data,wave,axis=1)
+            ss = ss_2D(ref_data[j-1],wave,axis=1)
             z = np.linspace(sample.z[0],sample.z[-1],len(ss))
             ss_data[sample_key][state][magnitude] = [z, ss]
             ss_ylabels[sample_key][state] =  rf'$T = {Temperature}\: Cº$'+'\n'+ rf'$\delta = {Flecha}\: mm$'
@@ -73,7 +90,7 @@ def Spectrogram(samples,n_fft=2000, hop_length= 100,magnitude = 'module',cmap='j
     a_plot(data,ylabels,hop_length = hop_length, x_axis = 'time', y_axis = 'log',dB = True)
 
     # Correlation plot
-    a_plot(c_data,c_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = 'log',dB = False)
+    a_plot(c_data,c_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = 'linear',dB = False)
 
     # SS plot
     a_plot(ss_data,ss_ylabels,hop_length = hop_length, type='')

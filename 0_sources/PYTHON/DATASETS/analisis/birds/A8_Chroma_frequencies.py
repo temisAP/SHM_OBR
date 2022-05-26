@@ -16,7 +16,7 @@ def Chroma_frequencies(samples,
     print(' hop_length =',hop_length)
 
     sample_keys = samples.keys()
-    states = ['P','S']
+    states = [r'$P(z)$',r'$S(z)$']
     components = [magnitude]
 
     data, ylabels = create_data_and_ylabels(sample_keys,states,components)
@@ -29,6 +29,7 @@ def Chroma_frequencies(samples,
         sr = int(1/(sample.z[1]-sample.z[0]))
 
         for j, state in enumerate(states):
+            j+=1
 
             # np.array module to librosa stuff
             if magnitude == 'module' or magnitude == 'abs':
@@ -44,7 +45,6 @@ def Chroma_frequencies(samples,
 
             # Chromogram
             chromagram = librosa.feature.chroma_stft(y = wave, sr=new_sr, hop_length=hop_length)
-
 
             # Store values
             data[sample_key][state][magnitude]    = [chromagram, new_sr]

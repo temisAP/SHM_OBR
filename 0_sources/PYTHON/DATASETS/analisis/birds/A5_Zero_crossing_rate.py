@@ -40,7 +40,6 @@ def Zero_crossing_rate(self,sample_size = None):
 
     for j, state in enumerate(['P','S']):
 
-
         for i, c_axis in enumerate(['Real','Imaginary']):
 
             delta_T_list = list()
