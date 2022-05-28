@@ -34,7 +34,7 @@ def Spectral_Shift(samples):
         for j, state in enumerate(states):
             j+=1
 
-            ss = global_spectral_shift(ref_data[j-1],sample.Data[j],sample.f,delta=200,window=1000)*1e6
+            ss = global_spectral_shift(ref_data[j-1],sample.Data[j],sample.f,delta=200,window=250)*1e6
             z  = np.linspace(0,sample.z[-1]-sample.z[0],len(ss))
 
             data[sample_key][state]['Spectral shift'] = [z,ss]
@@ -43,7 +43,7 @@ def Spectral_Shift(samples):
 
 
     # Make the plot
-    a_plot(data,ylabels,type='',alpha = 1,linestyle='-',linewidth = 1)
+    a_plot(data,ylabels,type='',alpha = 1,linestyle='-',linewidth = 2)
 
 
     plt.show()

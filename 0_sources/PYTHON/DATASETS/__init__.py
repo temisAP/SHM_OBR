@@ -145,7 +145,7 @@ class DATASETS(object):
 
     from .sensor import sensor, local_sensor
 
-    from .save import save, save_obrfiles, save_measures, save_something
+    from .save import save, save_obrfiles, save_measures, save_something, save_slices, save_slices_as_mat
 
     from .load import load, load_slices, load_dataset, load_obrfiles, load_measures, load_IA_obj
 

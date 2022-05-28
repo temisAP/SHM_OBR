@@ -178,7 +178,7 @@ def slices2dataset(self,matches = 100,percentage=100,avoid_segment=[None, None],
             delta_flecha    = (row['flecha']-ref_row['flecha']) * 1e-3      # mm to m
             x               = row['x'] * 1e-3                               # mm to m
 
-            eps_mec = 3*delta_flecha*t/(2*L**3) * (x-L) * 1e6               # Mechanical microdeformations
+            eps_mec = 3*delta_flecha*t/(2*L**3) * (L-x) * 1e6               # Mechanical microdeformations
             eps_the = alpha * delta_T                                       # Thermal  microdeformations
             delta_EPS = eps_mec + eps_the                                   # Total microdeformations
 

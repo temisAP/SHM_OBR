@@ -11,6 +11,7 @@ path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/SHM/98_data/0_Datasets/{datas
 #path_to_folder = f'../../../..{dataset}'
 
 CM2_obj = DATASETS(path_to_folder)
+CM2_obj.save_slices_as_mat()
 #CM2_obj.save()
 
 # %%
@@ -24,16 +25,16 @@ CM2_obj = DATASETS(path_to_folder)
 #CM2_obj.save()
 
 
-CM2_obj.obr2slices(delta=500)
-CM2_obj.save()
+#CM2_obj.obr2slices(delta=500)
+#CM2_obj.save()
 
 # slices = CM2_obj.load_slices()
 
 
-CM2_obj.slices2dataset(matches=50,percentage=100,conserve_segment=[100, 280])
-CM2_obj.save()
+#CM2_obj.slices2dataset(matches=50,percentage=100,conserve_segment=[100, 280])
+#CM2_obj.save()
 
-CM2_obj.dataset_plot()
-exit()
+#CM2_obj.dataset_plot()
+#exit()
 
 #dataset = CM2_obj.load_dataset()

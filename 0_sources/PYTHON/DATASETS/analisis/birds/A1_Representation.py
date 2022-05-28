@@ -3,6 +3,7 @@ import librosa
 import librosa.display
 from .Z9_utils import arr2librosa, a_plot, create_data_and_ylabels
 import numpy as np
+from math import atan2
 
 
 def Representation(samples):
@@ -13,14 +14,19 @@ def Representation(samples):
 
     data, ylabels = create_data_and_ylabels(sample_keys,states,components)
 
+
+
     for i, sample, sample_key in zip(range(len(samples.keys())), samples.values(), samples.keys()):
 
         Temperature = sample.temperature
         Flecha = sample.flecha
         sr = int(1/(sample.z[1]-sample.z[0]))
 
+        if i == 0:
+            print('Points pad:',(sample.z[1]-sample.z[0])*1e6,'μm' )
+            print('Sample rate:',sr,'1/m')
+
         for j, state in enumerate(states):
-            j+=1
 
             wave, new_sr = arr2librosa(sample.Data[j],sr)
 
