@@ -49,6 +49,7 @@ def Spectrogram(samples,n_fft=1000, hop_length= 200,
     d_data, d_ylabels   = create_data_and_ylabels(sample_keys,states,components)
     #e_data, e_ylabels   = create_data_and_ylabels(sample_keys,states,components)
     #f_data, f_ylabels   = create_data_and_ylabels(sample_keys,states,components)
+    z_data, z_ylabels   = create_data_and_ylabels(sample_keys,states,components)
 
     ref_data = [[0],[0],[0]]
     base_corr = [[0],[0],[0]]
@@ -92,6 +93,7 @@ def Spectrogram(samples,n_fft=1000, hop_length= 200,
                     wave = np.angle(wave)
 
 
+
             elif type == 'mel':
                 wave, new_sr = arr2librosa(sample.Data[j+1],sr)
                 wave = (wave.real**2+wave.imag**2)**0.5
@@ -106,7 +108,6 @@ def Spectrogram(samples,n_fft=1000, hop_length= 200,
                 wave = wave.reshape(wave.shape[0],wave.shape[1]*wave.shape[2]) if len(wave.shape) == 3 else wave
 
                 new_sr = sr/2
-
 
             elif type == 'chroma':
                 wave, new_sr = arr2librosa(sample.Data[j+1],sr)
@@ -124,6 +125,29 @@ def Spectrogram(samples,n_fft=1000, hop_length= 200,
                 print('Under construction')
             elif type == 'chroma_cens':
                 print('Under construction')
+            elif type == 'z-chrip':
+
+                from scipy.signal import czt, czt_points
+                fs = sr
+                f1 = 0
+                M = fs // 2  # Just positive frequencies, like rfft
+                a = np.exp(-f1/fs)  # Starting point of the circle, radius < 1
+                w = np.exp(-1j*np.pi/M)  # "Step size" of circle
+                zchirp = czt(sample.Data[j+1],M + 1, w, a)  # Include Nyquist for comparison to rfft
+
+                # Magnitude to consider
+                if magnitude == 'module' or magnitude == 'abs':
+                    wave = np.abs(zchirp)
+                elif magnitude == 'phase' or magnitude == 'angle':
+                    wave = np.angle(zchirp)
+                z = np.linspace(0,sample.z[-1]-sample.z[0],len(wave))
+
+                z_data[sample_key][state][magnitude] = [z,wave]
+                z_ylabels[sample_key][state]= rf'$T = {Temperature}\: Cº$'+'\n'+ rf'$\delta = {Flecha}\: mm$'
+
+                wave = custom_stft(zchirp, window=n_fft,delta=hop_length)
+                new_sr = sr
+
             else:
                 print('Invalid type. Chose between: "normal","mel","chroma","chroma_cqt","chroma_cens"')
 
@@ -161,8 +185,8 @@ def Spectrogram(samples,n_fft=1000, hop_length= 200,
 
             # Simple spectrogram
             data[sample_key][state][magnitude]    = [wave, new_sr]
-            if type == 'normal' or type == 'mel':
-                ylabels[sample_key][state] =  rf'$\nu \: [Hz]$'+'\n'+ rf'$T = {Temperature}\: Cº$'+'\n'+ rf'$\delta = {Flecha}\: mm$'
+            if type == 'normal' or type == 'mel' or type == 'z-chrip':
+                ylabels[sample_key][state] =  rf'$\nu$ [1/m]'+'\n'+ rf'$T = {Temperature}\: Cº$'+'\n'+ rf'$\delta = {Flecha}\: mm$'
             elif 'chroma' in type:
                 ylabels[sample_key][state] =  rf'Pitch class'+'\n'+ rf'$T = {Temperature}\: Cº$'+'\n'+ rf'$\delta = {Flecha}\: mm$'
 
@@ -173,10 +197,10 @@ def Spectrogram(samples,n_fft=1000, hop_length= 200,
     if type == 'normal':
         y_axis = 'log'
         y_axis2 = 'linear'
-    elif type == 'mel':
-        y_axis = y_axis2 = 'linear'
     elif 'chroma' in type:
         y_axis = y_axis2 = 'chroma'
+    else:
+        y_axis = y_axis2 = 'linear'
 
 
     # Plot
@@ -191,11 +215,11 @@ def Spectrogram(samples,n_fft=1000, hop_length= 200,
     a_plot(d_data,d_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = y_axis2,dB = False)
     plt.get_current_fig_manager().canvas.set_window_title('Correlation comparisson')
 
-    # Correlation plot
+    # Auto correlation plot
     a_plot(a_data,a_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = y_axis2,dB = False)
     plt.get_current_fig_manager().canvas.set_window_title('Auto correlation')
 
-    # Difference between correlations plot
+    # Difference between autocorrelations plot
     a_plot(b_data,b_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = y_axis2,dB = False)
     plt.get_current_fig_manager().canvas.set_window_title('Auto correlation comparisson')
 
@@ -206,10 +230,12 @@ def Spectrogram(samples,n_fft=1000, hop_length= 200,
     #a_plot(f_data,f_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = 'linear',dB = False)
 
 
-
-
     # Possibly birrefringence
     b_plot(data,d_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = y_axis2)
     plt.get_current_fig_manager().canvas.set_window_title('Slow-Fast')
+
+    if type == 'z-chrip':
+        a_plot(z_data,z_ylabels,type = '',linewidth=0.5,linestyle = '-')
+        plt.get_current_fig_manager().canvas.set_window_title('Z-Chirp')
 
     plt.show()

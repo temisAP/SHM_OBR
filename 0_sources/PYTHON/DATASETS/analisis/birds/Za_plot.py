@@ -19,7 +19,10 @@ def a_plot(data,ylabels,
 
     samples     = list(data.keys())
     states      = list(data[samples[0]].keys())
-    components  = list(data[samples[0]][states[0]])
+    for sample in samples:
+        for state in states:
+            data[sample][state] = {k: v for k, v in data[sample][state].items() if v} # Delete dict elements if empty
+    components  = list(data[samples[0]][states[0]]);
 
     example = data[samples[0]][states[0]][components[0]][0]
 
@@ -95,7 +98,7 @@ def a_plot(data,ylabels,
     # Put a general legend at the bottom of the figure
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
-    plt.figlegend(by_label.values(), by_label.keys(),loc='lower center',ncol=2,fancybox=False, shadow=False) if plot_type == '1D' else None
+    plt.figlegend(by_label.values(), by_label.keys(),loc='lower center',ncol=len(handles),fancybox=False, shadow=False) if plot_type == '1D' else None
 
     if plot_type == '1D':
         # Subplots adjustment with no gaps

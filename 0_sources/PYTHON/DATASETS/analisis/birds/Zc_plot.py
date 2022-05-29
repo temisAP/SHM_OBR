@@ -4,11 +4,12 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from .Z9_utils import custom_stft, correlation2D, a_plot, create_data_and_ylabels
 
-def b_plot(data,ylabels,
-                cmap='jet',x_axis = 'time', y_axis = 'log', hop_length=None):
+def c_plot(data,ylabels,n_fft = 1000, hop_length = 200,
+            type='librosa', alpha = 1,  linewidth = 0.5,linestyle = '-o'):
 
-    """ Plot waves specified in data
+    """ Plot comprissons between data
 
         :param data: dict with the following structure
 
@@ -20,95 +21,86 @@ def b_plot(data,ylabels,
     states      = list(data[samples[0]].keys())
     components  = list(data[samples[0]][states[0]])
 
-    example = data[samples[0]][states[0]][components[0]][0]
+    for sample in samples:
+        for state in states:
+            data[sample][state] = {k: v for k, v in data[sample][state].items() if v} # Delete dict elements if empty
+    components  = list(data[samples[0]][states[0]])
 
-    if np.asarray(example).ndim == 1:
-        plot_type = '1D'
-    elif np.asarray(example).ndim == 2:
-        plot_type = '2D'
-    else:
-        print('>2D not supported')
-        return
+    a_data, a_ylabels   = create_data_and_ylabels(samples,states,components) # Difference
+    b_data, b_ylabels   = create_data_and_ylabels(samples,states,components) # Spectrogram
+    c_data, c_ylabels   = create_data_and_ylabels(samples,states,components) # Spectrogram 2D corr
+    d_data, d_ylabels   = create_data_and_ylabels(samples,states,components) # Spectrogram 2D corr comp
 
-    fig, ax = plt.subplots(len(samples),2, figsize = (10, 16))
+    ref_y, _       = create_data_and_ylabels(samples,states,components)
+    ref_S, _       = create_data_and_ylabels(samples,states,components)
+    base_corr, _   = create_data_and_ylabels(samples,states,components)
+
 
     for i, sample in enumerate(samples):
 
-        j = 0
+        for j, state in enumerate(states):
 
-        if j==0:
-            P, sr = data[sample][states[0]][components[0]]
-            S, sr = data[sample][states[1]][components[0]]
+            for magnitude in components:
 
-            corr = correlation2D(P,S,axis=1)
+                if type == 'librosa':
+                    y = data[sample][state][magnitude][0]*1e6
+                    new_sr = data[sample][state][magnitude][1]
 
-            im = librosa.display.specshow(corr, sr = sr,
-                                    x_axis= x_axis ,y_axis = y_axis, hop_length = hop_length, ax=ax[i,j], cmap = cmap)
+                    S = custom_stft(y, window=n_fft,delta=hop_length)
 
-            ax[0,j].set_title(r'$P \star S$',fontsize=12)
-
-        j = 1
-        if j == 1:
-            if i == 0:
-                base_corr = corr
-
-            d_corr = corr-base_corr
-
-            im = librosa.display.specshow(d_corr, sr = sr,
-                                    x_axis= x_axis ,y_axis = y_axis, hop_length = hop_length, ax=ax[i,j], cmap = cmap)
-
-            ax[0,j].set_title(r'$(P \star S) - (P_0 \star S_0)$',fontsize=12)
+                    # Reference states
+                    if i == 0:
+                        ref_sample = sample
+                        ref_y[ref_sample][state][magnitude]        = y
+                        ref_S[ref_sample][state][magnitude]        = S
+                        base_corr[ref_sample][state][magnitude]    = correlation2D(ref_S[ref_sample][state][magnitude],ref_S[ref_sample][state][magnitude],axis=1)
 
 
-        # Update figure (for later calculations)
-        plt.tight_layout()
+                    # Difference
+                    a_data[sample][state][magnitude] = [y-ref_y[ref_sample][state][magnitude],new_sr]
 
-        for j in range(2):
+                    # Spectrogram
+                    b_data[sample][state][magnitude] = [S, new_sr]
 
-            # y axis, label just at left and without offsetText (which is displayed in the axis label)
+                    # Correlation between signals
+                    c_data[sample][state][magnitude] = [correlation2D(ref_S[ref_sample][state][magnitude],S,axis=1), new_sr]
 
-            plt.setp(ax[i,j].get_yticklabels(), visible=False) if j!=0 else None
-            ax[i,j].set_ylabel('') if plot_type == '2D' else False
-
-            ax[i,j].yaxis.offsetText.set_visible(False)
-            offset = ax[i,j].yaxis.get_major_formatter().get_offset()
-
-            ax[i,0].set_ylabel(rf'{offset}'+'\n\n'+ ylabels[sample][states[0]],labelpad=10,ha='right').set_rotation(0)
-
-            # x axis, ticks and labels on the bottom figure of each column
-
-            plt.setp(ax[i,j].get_xticklabels(), visible=True, color='w')
-            ax[i,j].set_xlabel('')
-
-            plt.setp(ax[-1,j].get_xticklabels(), visible=True, color = 'k')
-            ax[-1,j].set_xlabel('z [m]')
+                    # Difference between correlation
+                    d_data[sample][state][magnitude] = [correlation2D(ref_S[ref_sample][state][magnitude],S,axis=1)-base_corr[ref_sample][state][magnitude], new_sr]
 
 
 
+                else:
+                    y = data[sample][state][magnitude][1]*1e6
+                    t = data[sample][state][magnitude][0]
+                    new_sr = len(y)/len(t)
+
+                    # Reference states
+                    if i == 0:
+                        ref_sample = sample
+                        ref_y[ref_sample][state][magnitude]     = y
+
+                    # diffence between reference states
+                    a_data[sample][state][magnitude] = [t,y-ref_y[ref_sample][state][magnitude]]
 
 
-    # Make all y and x axis equal to conserve reference
-    for i in range(len(samples)):
-        for j in range(2):
-            ax[0,0].get_shared_x_axes().join(ax[0,0], ax[i,j])
-            ax[0,0].get_shared_y_axes().join(ax[0,0], ax[i,j])
+                a_ylabels[sample][state] = b_ylabels[sample][state] = c_ylabels[sample][state] = d_ylabels[sample][state] = '1e-6\n\n'+ylabels[sample][state]
 
-    y_limits = [a.get_ylim() for a in  fig.axes[:-1]] ; y_limits = [item for tuple in y_limits for item in tuple]
-    plt.setp(ax, ylim=(min(y_limits) , max(y_limits)))
 
-    # Put a general legend at the bottom of the figure
-    handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    plt.figlegend(by_label.values(), by_label.keys(),loc='lower center',ncol=2,fancybox=False, shadow=False) if plot_type == '1D' else None
+    # Difference
+    a_plot(a_data,a_ylabels,type=type,linewidth=1)
+    plt.get_current_fig_manager().canvas.set_window_title('Difference')
 
-    # Add colorbar
-    cbar_ax = fig.add_axes([0.9, 0.15, 0.025, 0.7])
-    fig.colorbar(im, cax=cbar_ax)
+    if type == 'librosa':
 
-    # Subplots adjustment
-    plt.subplots_adjust(top=0.954,
-                        bottom=0.091,
-                        left=0.091,
-                        right=0.875,
-                        hspace=0.095,
-                        wspace=0.015)
+        # Spectrogram
+        a_plot(b_data,b_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = 'linear', dB = False)
+        plt.get_current_fig_manager().canvas.set_window_title('Spectrogram')
+
+        # Spectrogram Correlation
+        a_plot(c_data,c_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = 'linear',dB = False)
+        plt.get_current_fig_manager().canvas.set_window_title('Correlation')
+
+        # Spectrogram Difference between correlations
+        a_plot(d_data,d_ylabels,hop_length = hop_length, x_axis = 'time', y_axis = 'linear',dB = False)
+        plt.get_current_fig_manager().canvas.set_window_title('Correlation comparisson')

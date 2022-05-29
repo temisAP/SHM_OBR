@@ -2,11 +2,8 @@ from .A1_Representation import Representation
 from .A2_Spectral_Shift import Spectral_Shift
 from .A3_Spectrogram import Spectrogram
 from .A5_Zero_crossing_rate import Zero_crossing_rate
-from .A6_Spectral_features import Spectral_features
-from .A7_Spectral_centroid import Spectral_centroid
-from .A8_Chroma_frequencies import Chroma_frequencies
+from .A6_Features import Features
 from .A9_BPM import BPM
-from .A10_Spectral_rolloff import Spectral_rolloff
 
 def birds(self,sample_files):
 
@@ -15,7 +12,7 @@ def birds(self,sample_files):
         sample_signals[file] = self.obrfiles[file]
 
     spectrograms = True
-    spectral_features = True
+    features = True
 
 
     #Representation(sample_signals)
@@ -29,6 +26,7 @@ def birds(self,sample_files):
         #Spectrogram(sample_signals,magnitude=magnitude,stft='custom_stft',type='normal')
         #Spectrogram(sample_signals,magnitude=magnitude,stft='custom_stft',type='mel')
         #Spectrogram(sample_signals,magnitude=magnitude,stft='custom_stft',type='chroma')
+        Spectrogram(sample_signals,magnitude=magnitude,type='z-chrip')
 
         magnitude = 'phase'
         #Spectrogram(sample_signals,magnitude=magnitude,stft='librosa',type='normal')
@@ -36,17 +34,26 @@ def birds(self,sample_files):
         #Spectrogram(sample_signals,magnitude=magnitude,stft='custom_stft',type='normal')
         #Spectrogram(sample_signals,magnitude=magnitude,stft='librosa',type='mel')
         #Spectrogram(sample_signals,magnitude=magnitude,stft='librosa',type='chroma')
+        Spectrogram(sample_signals,magnitude=magnitude,type='z-chrip')
 
-    if spectral_features:
+    if features:
         magnitude = 'Module'
-        #Spectral_features(sample_signals,feature = 'Harmonics',magnitude=magnitude)
-        #Spectral_features(sample_signals,feature = 'Perceptual', magnitude=magnitude)
-        Spectral_features(sample_signals,feature = 'Spectral centroid',magnitude=magnitude)
+        #Features(sample_signals,feature = 'Harmonics',magnitude=magnitude)
+        #Features(sample_signals,feature = 'Percusive', magnitude=magnitude)
+        Features(sample_signals,feature = 'Spectral centroid',magnitude=magnitude)
+        Features(sample_signals,feature = 'Spectral rolloff',magnitude=magnitude)
+        Features(sample_signals,feature = 'Spectral bandwidth', magnitude=magnitude)
+        Features(sample_signals,feature = 'Spectral contrast',magnitude=magnitude)
+        Features(sample_signals,feature = 'Spectral flatness',magnitude=magnitude)
+        #Features(sample_signals,feature = 'Polyfeatures',magnitude=magnitude)
+        Features(sample_signals,feature = 'RMS',magnitude=magnitude)
+        #Features(sample_signals,feature = 'Tempogram',magnitude=magnitude)
+
+    exit()
 
     Zero_crossing_rate(self,sample_size = 50)
     BPM(self,sample_size=50)
-    #Spectral_rolloff(sample_signals,type = 'Module-Phase')
-    #Spectral_rolloff(sample_signals,type = 'Real-Imaginary')
+
 
     # To be created
 
@@ -54,10 +61,6 @@ def birds(self,sample_files):
     #chroma_cens
     #mfcc
     #rms
-    #spectral_bandwidth
-    #spectral_contrast
-    #spectral_flatness
-    #poly_features
     #toneetz
 
     #tempogram

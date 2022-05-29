@@ -132,7 +132,7 @@ def ss_2D(Z1,Z2,axis=1):
 
     return arg_maxs
 
-def custom_stft(y,window=2000,delta=200):
+def custom_stft(y,window=2000,delta=200,zchirp=False):
 
         """ Function to create a spectrogram based in the STFT algorithm
             but simplyfied
@@ -146,6 +146,14 @@ def custom_stft(y,window=2000,delta=200):
 
         """
 
+        if zchirp:
+            from scipy.signal import czt, czt_points
+            fs = 51101
+            f1 = 0
+            M = fs // 2  # Just positive frequencies, like rfft
+            a = np.exp(-f1/fs)  # Starting point of the circle, radius < 1
+            w = np.exp(-1j*np.pi/M)  # "Step size" of circle
+
         window = int(window/2)
 
         steps = range(window,len(y)-window+1,delta)
@@ -154,7 +162,8 @@ def custom_stft(y,window=2000,delta=200):
 
                 yy = y[i-window:i+window]
 
-                YY = np.fft.fft(yy)
+                YY = czt(yy,M + 1, w, a)  if zchirp else np.fft.fft(yy)
+
                 stft.append(YY)
 
         stft = np.array(stft)
@@ -179,3 +188,5 @@ def create_data_and_ylabels(sample_keys,states,components):
 from .Za_plot import a_plot
 
 from .Zb_plot import b_plot
+
+from .Zc_plot import c_plot
