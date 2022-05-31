@@ -2,7 +2,12 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-def results(self,histograms=True,confusion=True,layers=False,representation=True,save=False):
+def results(self,test_data = None,histograms=True,confusion=True,layers=False,representation=True,save=False):
+
+    if test_data:
+        dataset = self.load_dataset(test_data):
+        self.X['test'] = dataset.X
+        self.Y['test'] = dataset.Y
 
 
     print('\nTesting Neural Network')

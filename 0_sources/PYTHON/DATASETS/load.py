@@ -33,12 +33,16 @@ def load_slices(self):
     else:
         print('NO SLICES FOUND')
 
-def load_dataset(self):
+def load_dataset(self,path_to=None):
 
     """ Load datasets from their ubication """
 
-    path_to = os.path.join(self.path,self.folders['3_DATASET'])
-    name = self.INFO['dataset filename']
+    if path_to:
+        path_to = path_to
+        name = os.path.basename(path_to)
+    else:
+        path_to = os.path.join(self.path,self.folders['3_DATASET'])
+        name = self.INFO['dataset filename']
 
     if os.path.exists(path_to):
         from .slices2dataset import dataset
