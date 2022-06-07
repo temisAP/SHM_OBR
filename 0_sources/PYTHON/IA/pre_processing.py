@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
+import torch
 
 class a_scaler(object):
     def __init__(self,X=None):
@@ -20,14 +21,24 @@ class a_scaler(object):
 
     def transform(self,x):
 
+        is_torch = False
+
         if isinstance(x,list):
             x = np.array(x)
         if len(x.shape) == 1:
             x = x.reshape(1,-1)
+        if torch.is_tensor(x):
+            x = x.cpu().detach().numpy()
+            x = x.T
+            is_torch = True
 
         out = np.empty_like(x)
         for i in range(x.shape[1]):
             out[:,i] = (x[:,i]-self.min[i])/(self.max[i]-self.min[i])
+
+        if is_torch:
+            out = torch.from_numpy( np.array(out) ).float()
+
         return out
 
     def inverse_transform(self,z):

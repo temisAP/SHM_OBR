@@ -137,13 +137,12 @@ def computeOBR(self):
         limit2 = float(df['limit2\n[m]'][0])
 
     # Generate datasets from selected data
-
     for key, obrfile in self.obrfiles.items():
 
         import psutil
         if psutil.virtual_memory()[2] < 90:
 
-            if not hasattr(obrfile, 'Data'):
+            if not hasattr(obrfile, 'Data') or obrfile.Data is None:
                 # Read .obr file
                 f,z,Data = multi_read_obr([obrfile.name],os.path.join(self.path,self.folders['0_OBR']),limit1=limit1,limit2=limit2)
                 # Update OBR file register

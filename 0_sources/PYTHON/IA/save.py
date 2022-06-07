@@ -3,6 +3,7 @@ import pickle
 import torch
 import sys
 import numpy as np
+from .model import TE_single
 
 
 def save(self):
@@ -51,12 +52,16 @@ def save_model(self):
     path_to = os.path.join(self.path,self.name.replace('.pkl',f'_model.pkl'))
 
     if isinstance(self.model, torch.nn.Module):
+        # Save full model
         torch.save(self.model.state_dict(),path_to)
-        input_names  = ['Cross correlations (concatenated)']
-        output_names = ['Temperature','Deformation']
-        batch = torch.randn(1,12001)
+        torch.save(TE_single(self.model,0).state_dict(),path_to.replace('.pkl','T.pkl'))
+        torch.save(TE_single(self.model,1).state_dict(),path_to.replace('.pkl','E.pkl'))
+
         try:
-            torch.onnx.export(self.model, batch, path_to.replace('pkl','onnx'), input_names=input_names, output_names=output_names)
+            input_names  = ['Cross correlations (concatenated)']
+            output_names = ['Temperature','Deformation']
+            batch = torch.randn(1,12001)
+            torch.onnx.export(self.model, batch, path_to.replace('.pkl','.onnx'), input_names=input_names, output_names=output_names)
         except Exception as e:
             print('Error while exporting model in ONNX format')
             print(e)

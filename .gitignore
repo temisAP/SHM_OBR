@@ -12,3 +12,5 @@
 **/*.ipynb_checkpoints/
 
 2_IA/models/IA_IA.7z
+2_IA/models/test_Y.txt
+2_IA/models/test_X.txt

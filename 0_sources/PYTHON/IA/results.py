@@ -1,13 +1,21 @@
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
+import gzip
 
-def results(self,test_data = None,histograms=True,confusion=True,layers=False,representation=True,save=False):
+def results(self,path_to = None,histograms=True,confusion=True,layers=False,representation=True,save=False):
 
-    if test_data:
-        dataset = self.load_dataset(test_data):
-        self.X['test'] = dataset.X
-        self.Y['test'] = dataset.Y
+    if path_to:
+        self.X['test'] = np.loadtxt(path_to[0])
+        self.Y['test'] = np.loadtxt(path_to[1])
+
+    if self.X['test'] == 'In data loader':
+        self.X['test'] = list()
+        self.Y['test'] = list()
+        for x,y in self.dl['test']:
+            self.X['test'].append(x.cpu().detach().numpy())
+            self.Y['test'].append(y.cpu().detach().numpy())
 
 
     print('\nTesting Neural Network')

@@ -53,7 +53,7 @@ def curing_evol1D(self,points,REF=None,files=None,val='ss',plot=True):
     files.remove(REF) if REF in files else False
 
     # Compute measures if no measueres computed
-    if not hasattr(self, 'measures') or self.measures is None:
+    if not hasattr(self, 'measures') or (self.measures is None) or any([v == None for v in self.measures[REF].values()]):
         print('\nNo measures found, computing from OBR files...')
         self.obr2measures(REFs=[REF])
         self.save()
@@ -108,7 +108,7 @@ def curing_evol1D(self,points,REF=None,files=None,val='ss',plot=True):
                 file_time = datetime.strptime(self.obrfiles[files[idx]].date,"%Y,%m,%d,%H:%M:%S")
                 elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60  # seconds to minutes
                 max_elapsed_time = elapsed_time if elapsed_time > max_elapsed_time else max_elapsed_time
-                plt.plot(z,val_distributions[idx],color=plt.cm.jet(find_index(time_distribution,elapsed_time)/len(time_distribution)))
+                plt.plot(z,val_distributions[idx],'o',color=plt.cm.jet(find_index(time_distribution,elapsed_time)/len(time_distribution)))
 
         for point in points:
             plt.axvline(point,linestyle='--',color='black',label='Point chosen')
@@ -130,7 +130,12 @@ def curing_evol1D(self,points,REF=None,files=None,val='ss',plot=True):
         plt.figure()
 
         for point in points:
-            plt.plot(all_times[point],all_vals[point],'o-',label=f'z = {point} m')
+            # Sort by time
+            new_idx = np.argsort(all_times[point])
+            all_times[point] = [all_times[point][int(i)] for i in new_idx]
+            all_vals[point]  = [all_vals[point][int(i)] for i in new_idx]
+
+            plt.plot(all_times[point],all_vals[point],'o',label=f'z = {point} m')
 
         plt.grid()
         plt.legend()

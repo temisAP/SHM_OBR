@@ -81,3 +81,17 @@ class TE(nn.Module):
         E = self.fc_E(x0).flatten()
 
         return T, E
+
+class TE_single(nn.Module):
+    def __init__(self,TE,n):
+        super(TE_single, self).__init__()
+        self.TE = TE
+        self.n = n
+        for p in self.TE.parameters():
+            p.requires_grad=False
+
+    def forward(self, x):
+        y = self.TE(x)
+        y = y[self.n]
+        print(y)
+        return y
