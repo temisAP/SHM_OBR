@@ -6,7 +6,7 @@ from DATASETS import DATASETS
 from IA import IA
 
 
-dataset = 'Acero_asimetrico'
+dataset = 'Carbono_simetrico'
 #path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/SHM/98_data/0_Curados/{dataset}'
 path_to_folder = f'/media/temis/Seagate Backup Plus Drive/Andres/0_Curados/TFM/{dataset}'
 
@@ -35,6 +35,7 @@ if False:
 
 # 1D evolution of available datasets
 
+
 if dataset == 'Aluminio_asimetrico':
 
     #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
@@ -50,25 +51,30 @@ elif dataset == 'Aluminio_simetrico':
 elif dataset == 'Acero_asimetrico':
 
     #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
-    CM2_obj.curing_evol1D(REF='60.obr',points=[2.4,2.6,2.8,3.4,3.66,3.95,4.45],val='ss')
-    # Ni idea de qué pasa aquí
+    CM2_obj.curing_evol1D(REF='0.obr',points=[2.4,2.6,2.8,3.4,3.66,3.95,4.45],val='ss')
+    # Ni idea de qué pasa aquí, quizá haya que repetir
 
 elif dataset == 'Acero_simetrico':
 
     #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
-    CM2_obj.curing_evol1D(REF='0.obr',points=[2.4,2.6,2.8,3.4,3.66,3.95,4.45],val='ss')
+    CM2_obj.curing_evol1D(REF='0.obr',points=[2.4,2.65,2.95,3.4,3.66,3.95,4.25,4.45],val='ss')
+    # Ready
 
 elif dataset == 'Carbono_asimetrico':
 
     #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
-    CM2_obj.curing_evol1D(REF='0.obr',points=[2.4,2.6,2.8,3.4,3.66,3.95,4.45],val='ss')
+    CM2_obj.curing_evol1D(REF='0.obr',points=[2.4,2.6,2.8,3.4,3.66,3.95,4.25],val='ss')
+    # Este sale bien refachero
 
 elif dataset == 'Carbono_simetrico':
 
     #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
-    CM2_obj.curing_evol1D(REF='0.obr',points=[2.4,2.6,2.8,3.4,3.66,3.95,4.45],val='ss')
+    CM2_obj.curing_evol1D(REF='0.obr',val='ss')
+
+    CM2_obj.curing_evol1D(REF='0.obr',points=[2.3,2.7,2.95,3.4,3.66,3.95,4.20],val='ss')
+    # También bien refachero
 
 elif dataset == 'Drift4':
 
     #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
-    CM2_obj.curing_evol1D(REF='0.obr',points=[2.4,2.6,2.8,3.4,3.66,3.95,4.45],val='ss')
+    CM2_obj.curing_evol1D(REF='0.obr',points=[2.3,2.7,2.95,3.4,3.66,3.95,4.20],val='ss')
