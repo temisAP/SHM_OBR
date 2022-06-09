@@ -6,7 +6,7 @@ from DATASETS import DATASETS
 from IA import IA
 
 
-dataset = 'Carbono_simetrico'
+dataset = 'Carbono_asimetrico'
 #path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/SHM/98_data/0_Curados/{dataset}'
 path_to_folder = f'/media/temis/Seagate Backup Plus Drive/Andres/0_Curados/TFM/{dataset}'
 
@@ -63,7 +63,8 @@ elif dataset == 'Acero_simetrico':
 elif dataset == 'Carbono_asimetrico':
 
     #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
-    CM2_obj.curing_evol1D(REF='0.obr',points=[2.4,2.6,2.8,3.4,3.66,3.95,4.25],val='ss')
+    CM2_obj.curing_evol1D(REF='0.obr',val='ss')
+    #CM2_obj.curing_evol1D(REF='0.obr',points=[2.4,2.6,2.8,3.4,3.66,3.95,4.25],val='ss')
     # Este sale bien refachero
 
 elif dataset == 'Carbono_simetrico':

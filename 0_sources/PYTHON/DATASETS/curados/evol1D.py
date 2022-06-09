@@ -300,7 +300,6 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
         print('\nPoints choosen:')
         print(' ',points)
-        print('')
 
     # Compute vals and times
     if isinstance(points,list):
@@ -328,33 +327,11 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                 elif isinstance(idx,list):
                     # Get all values in segment
                     data = np.array(val_distro[idx[0]:idx[1]])
-                    # Filter data
-                    #data = np.sort(data)
-                    window_length = 2*int(len(data)/5/2)+1
-                    central_data = data[window_length:-window_length]
-                    polyorder = 1
-                    from scipy.signal import savgol_filter, lfilter
-                    filtered_data = savgol_filter(central_data,window_length,polyorder)
-
-
-                    # Get normal distribution of values
-                    mu = np.mean(filtered_data)
-                    up = np.amax(filtered_data)
-                    dw = np.amin(filtered_data)
-                    # Append a list
-                    #vals.append([mu,up,dw])
+                    # Delete marginal values
+                    q1 = np.percentile(data,25)
+                    q3 = np.percentile(data,75)
+                    data = [val for val in data if val>=q1 and val<=q3]
                     vals.append(data)
-
-                    if False:
-                        plt.figure()
-                        plt.plot(np.linspace(0,1,len(data)),data,'o',label='data')
-                        plt.plot(np.linspace(0,1,len(filtered_data)),filtered_data,'-o',label='filtered data')
-                        plt.axhline(y=mu, label='mu')
-                        plt.axhline(y=up, label='up')
-                        plt.axhline(y=dw, label='dw')
-                        plt.legend()
-                        plt.grid()
-                        plt.show()
 
                 file_time = datetime.strptime(self.obrfiles[file].date,"%Y,%m,%d,%H:%M:%S")
                 elapsed_time = file_time - REF_time
@@ -368,18 +345,16 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
     # t plot
     if plot:
 
-        plt.figure()
+        # Manage colormap
         if len(points) <= 10:
             colormap = cm.get_cmap('tab10')
         else:
             colormap = cm.get_cmap('rainbow')
-
-        # If a
-        BW_number = sum([isinstance(point,list) for point in points])
-
-
         i = 0
-        to_legend = list()
+
+
+        plt.figure()
+
         for point_label,point in zip(points_labels,points):
             # Sort by time
             new_idx = np.argsort(all_times[point_label])
@@ -391,32 +366,63 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                     'o',label=f'z = {point_label:.3f} m',color=colormap(i)); i+=1
             else:
                 c =colormap(i);i+=1
-                box = plt.boxplot(all_vals[point_label],positions=all_times[point_label],manage_ticks=False,
-                            patch_artist =True,
-                            showfliers = False,
-                            boxprops   = dict(facecolor=c, color=c, alpha=0.3),
-                            capprops   = dict(color=c,linewidth=2,marker='o'),
-                            whiskerprops = dict(color=c,alpha=0),
-                            flierprops = dict(color=c, markeredgecolor=c),
-                            medianprops = dict(color=c,linewidth=2,marker='o'))
-                to_legend.append([box,f'z = {point_label:.3f} m'])
+                mu = list()
+                for data in all_vals[point_label]:
+                    # Get mean distribution
+                    mu.append(np.mean(data))
 
-                """
-                midle_line = [x[0] for x in all_vals[point_label]]
-                upper_line = [x[1] for x in all_vals[point_label]]
-                lower_line = [x[2] for x in all_vals[point_label]]
-                import statsmodels.api as sm
-                seasonal,upper_line = np.array(sm.tsa.filters.hpfilter(upper_line, lamb=25))
-                seasonal,lower_line = np.array(sm.tsa.filters.hpfilter(lower_line, lamb=25))
-                line = plt.plot(all_times[point_label],midle_line,'o',label=f'z = {point_label:.3f} m')
-                plt.fill_between(all_times[point_label],y1=upper_line,y2=lower_line,alpha=0.3,color=line[0].get_color())
-                """
+                # Append a list
+                line = plt.plot(all_times[point_label],mu,'o',label=f'z = {point_label:.3f} m',color=c)
 
         plt.grid()
         handles, labels = plt.gca().get_legend_handles_labels()
-        for element in to_legend:
-            labels.append(element[1])
-            handles.append(element[0])
+        by_label = dict(zip(labels, handles))
+        plt.legend(by_label.values(), by_label.keys())
+        plt.xlabel('Elapsed time [min]')
+        plt.ylabel(ylabel,fontsize=20,labelpad=30).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
+        plt.show()
+
+    # t-difference plot
+    if plot:
+
+        # Manage colormap
+        if len(points) <= 10:
+            colormap = cm.get_cmap('tab10')
+        else:
+            colormap = cm.get_cmap('rainbow')
+        i = 0
+
+        # To get and avoid reference segment
+        j = 0
+        ref = list()
+
+
+        plt.figure()
+
+        for point_label,point in zip(points_labels,points):
+
+            if j == 0:
+                ref_evolution = np.array(all_vals[point_label])
+                j += 1
+                print('\nReference set in/between:',point,'m')
+                continue
+            else:
+
+                c =colormap(i);i+=1
+                mu_diff = list()
+                max_diff = list()
+                for data,ref_data in zip(all_vals[point_label],ref_evolution):
+                    # Get mean distribution
+                    mu_diff.append(np.abs(np.mean(data)-np.mean(ref_data)))
+                    # Get mean distribution
+                    max_diff.append(np.amax(np.abs(data-np.mean(ref_data))))
+
+                # Plot
+                plt.plot(all_times[point_label],mu_diff,'o',  label=rf'|$\mu-\mu_0$|z = {point_label:.3f} m',color=c)
+                #plt.plot(all_times[point_label],max_diff,'--',label=rf'max(|$x-\mu_0$|)z = {point_label:.3f} m',color=c)
+
+        plt.grid()
+        handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys())
         plt.xlabel('Elapsed time [min]')
