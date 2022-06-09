@@ -298,6 +298,10 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
         plt.show()
 
+        print('\nPoints choosen:')
+        print(' ',points)
+        print('')
+
     # Compute vals and times
     if isinstance(points,list):
 
@@ -370,6 +374,10 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         else:
             colormap = cm.get_cmap('rainbow')
 
+        # If a
+        BW_number = sum([isinstance(point,list) for point in points])
+
+
         i = 0
         to_legend = list()
         for point_label,point in zip(points_labels,points):
@@ -384,13 +392,13 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
             else:
                 c =colormap(i);i+=1
                 box = plt.boxplot(all_vals[point_label],positions=all_times[point_label],manage_ticks=False,
-                            patch_artist=True,
+                            patch_artist =True,
                             showfliers = False,
-                            boxprops=dict(facecolor=c, color=c, alpha=0.3),
-                            capprops=dict(color=c),
-                            whiskerprops=dict(color=c,alpha=0),
-                            flierprops=dict(color=c, markeredgecolor=c),
-                            medianprops=dict(color=c,linewidth=2))
+                            boxprops   = dict(facecolor=c, color=c, alpha=0.3),
+                            capprops   = dict(color=c,linewidth=2,marker='o'),
+                            whiskerprops = dict(color=c,alpha=0),
+                            flierprops = dict(color=c, markeredgecolor=c),
+                            medianprops = dict(color=c,linewidth=2,marker='o'))
                 to_legend.append([box,f'z = {point_label:.3f} m'])
 
                 """
