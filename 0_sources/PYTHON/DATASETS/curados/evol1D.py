@@ -1,15 +1,18 @@
 import os
+import sys
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.backend_bases import MouseButton
-from pynput.mouse import Listener, Button
-import matplotlib as mpl
-from scipy.interpolate import interp1d
-import sys
 from datetime import datetime
 from random import sample
 
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import cm
+import matplotlib as mpl
+
+from matplotlib.backend_bases import MouseButton
+from pynput.mouse import Listener, Button
+
+from scipy.interpolate import interp1d
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from UTILS.utils import find_index
@@ -296,42 +299,118 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         plt.show()
 
     # Compute vals and times
-    if points:
-        points_labels = [x for x in points if isinstance(x,float) else x[0]]
+    if isinstance(points,list):
 
-        # Get all the values along the time of all the points specified
+        # Create dictionary with its keys
+        points_labels = list()
+        for point in points:
+            if isinstance(point,float):
+                points_labels.append(point)
+            elif isinstance(point,list):
+                points_labels.append((point[1]+point[0])/2)
+
         all_vals    =   dict.fromkeys(points_labels)
         all_times   =   dict.fromkeys(points_labels)
-        for point in points:
+
+        for point_label,point in zip(points_labels,points):
 
             vals    = list()
             times   = list()
             idx = find_index(z,point)
 
             for val_distro,file in zip(val_distributions,files):
-                vals.append(val_distro[idx])
+                if isinstance(idx,int) or isinstance(idx,np.integer):
+                    vals.append(val_distro[idx])
+                elif isinstance(idx,list):
+                    # Get all values in segment
+                    data = np.array(val_distro[idx[0]:idx[1]])
+                    # Filter data
+                    #data = np.sort(data)
+                    window_length = 2*int(len(data)/5/2)+1
+                    central_data = data[window_length:-window_length]
+                    polyorder = 1
+                    from scipy.signal import savgol_filter, lfilter
+                    filtered_data = savgol_filter(central_data,window_length,polyorder)
+
+
+                    # Get normal distribution of values
+                    mu = np.mean(filtered_data)
+                    up = np.amax(filtered_data)
+                    dw = np.amin(filtered_data)
+                    # Append a list
+                    #vals.append([mu,up,dw])
+                    vals.append(data)
+
+                    if False:
+                        plt.figure()
+                        plt.plot(np.linspace(0,1,len(data)),data,'o',label='data')
+                        plt.plot(np.linspace(0,1,len(filtered_data)),filtered_data,'-o',label='filtered data')
+                        plt.axhline(y=mu, label='mu')
+                        plt.axhline(y=up, label='up')
+                        plt.axhline(y=dw, label='dw')
+                        plt.legend()
+                        plt.grid()
+                        plt.show()
+
                 file_time = datetime.strptime(self.obrfiles[file].date,"%Y,%m,%d,%H:%M:%S")
                 elapsed_time = file_time - REF_time
                 times.append(elapsed_time.seconds)
 
-            all_vals[point]     = vals
-            all_times[point]    = np.array(times)/60
+            all_vals[point_label]     = vals
+            all_times[point_label]    = np.array(times)/60
+    else:
+        print('No points found')
 
     # t plot
     if plot:
 
         plt.figure()
+        if len(points) <= 10:
+            colormap = cm.get_cmap('tab10')
+        else:
+            colormap = cm.get_cmap('rainbow')
 
-        for point in points:
+        i = 0
+        to_legend = list()
+        for point_label,point in zip(points_labels,points):
             # Sort by time
-            new_idx = np.argsort(all_times[point])
-            all_times[point] = [all_times[point][int(i)] for i in new_idx]
-            all_vals[point]  = [all_vals[point][int(i)] for i in new_idx]
+            new_idx = np.argsort(all_times[point_label])
+            all_times[point_label] = [all_times[point_label][int(i)] for i in new_idx]
+            all_vals[point_label]  = [all_vals[point_label][int(i)] for i in new_idx]
 
-            plt.plot(all_times[point],all_vals[point],'o',label=f'z = {point:.3f} m')
+            if isinstance(all_vals[point_label][0],float):
+                plt.plot(all_times[point_label],all_vals[point_label],
+                    'o',label=f'z = {point_label:.3f} m',color=colormap(i)); i+=1
+            else:
+                c =colormap(i);i+=1
+                box = plt.boxplot(all_vals[point_label],positions=all_times[point_label],manage_ticks=False,
+                            patch_artist=True,
+                            showfliers = False,
+                            boxprops=dict(facecolor=c, color=c, alpha=0.3),
+                            capprops=dict(color=c),
+                            whiskerprops=dict(color=c,alpha=0),
+                            flierprops=dict(color=c, markeredgecolor=c),
+                            medianprops=dict(color=c,linewidth=2))
+                to_legend.append([box,f'z = {point_label:.3f} m'])
+
+                """
+                midle_line = [x[0] for x in all_vals[point_label]]
+                upper_line = [x[1] for x in all_vals[point_label]]
+                lower_line = [x[2] for x in all_vals[point_label]]
+                import statsmodels.api as sm
+                seasonal,upper_line = np.array(sm.tsa.filters.hpfilter(upper_line, lamb=25))
+                seasonal,lower_line = np.array(sm.tsa.filters.hpfilter(lower_line, lamb=25))
+                line = plt.plot(all_times[point_label],midle_line,'o',label=f'z = {point_label:.3f} m')
+                plt.fill_between(all_times[point_label],y1=upper_line,y2=lower_line,alpha=0.3,color=line[0].get_color())
+                """
 
         plt.grid()
-        plt.legend()
+        handles, labels = plt.gca().get_legend_handles_labels()
+        for element in to_legend:
+            labels.append(element[1])
+            handles.append(element[0])
+        by_label = dict(zip(labels, handles))
+        plt.legend(by_label.values(), by_label.keys())
         plt.xlabel('Elapsed time [min]')
         plt.ylabel(ylabel,fontsize=20,labelpad=30).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         plt.show()

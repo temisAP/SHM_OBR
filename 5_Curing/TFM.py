@@ -71,7 +71,7 @@ elif dataset == 'Carbono_simetrico':
     #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
     CM2_obj.curing_evol1D(REF='0.obr',val='ss')
 
-    CM2_obj.curing_evol1D(REF='0.obr',points=[2.3,2.7,2.95,3.4,3.66,3.95,4.20],val='ss')
+    #CM2_obj.curing_evol1D(REF='0.obr',points=[2.3,2.7,2.95,3.4,3.66,3.95,4.20],val='ss')
     # También bien refachero
 
 elif dataset == 'Drift4':
