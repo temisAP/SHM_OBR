@@ -87,7 +87,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
     z = self.measures[REF][file].x * 1e3 # mm to m
 
     # z plot
-    if plot:
+    if plot == False:
 
         fig, ax = plt.subplots()
         max_elapsed_time = REF_time - REF_time; max_elapsed_time = max_elapsed_time.total_seconds() / 60
@@ -106,9 +106,15 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
         plt.grid()
 
-        if points:
+        if not points is None:
             for point in points:
-                plt.axvline(point,linestyle='--',color='black',label='Point chosen')
+                if isinstance(point,float):
+                    plt.axvline(point,linestyle='--',color='black',label='Point chosen')
+                elif isinstance(point,list):
+                    plt.axvline(x=point[0], linestyle='-', linewidth=2,color='tab:orange',label='Interval edges')
+                    plt.axvline(x=point[1], linestyle='-', linewidth=2,color='tab:orange',label='Interval edges')
+                    plt.axvspan(point[0], point[1], alpha=0.3, color='tab:orange', label='Interval choosen')
+
 
         else:
             global new_points
@@ -343,7 +349,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         print('No points found')
 
     # t plot
-    if plot:
+    if plot == False:
 
         # Manage colormap
         if len(points) <= 10:
@@ -395,9 +401,9 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         # To get and avoid reference segment
         j = 0
         ref = list()
+        mu_diff   = dict.fromkeys(points_labels)
 
-
-        plt.figure()
+        fig, ax = plt.subplots()
 
         for point_label,point in zip(points_labels,points):
 
@@ -405,21 +411,196 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                 ref_evolution = np.array(all_vals[point_label])
                 j += 1
                 print('\nReference set in/between:',point,'m')
-                continue
-            else:
 
-                c =colormap(i);i+=1
-                mu_diff = list()
-                max_diff = list()
-                for data,ref_data in zip(all_vals[point_label],ref_evolution):
-                    # Get mean distribution
-                    mu_diff.append(np.abs(np.mean(data)-np.mean(ref_data)))
-                    # Get mean distribution
-                    max_diff.append(np.amax(np.abs(data-np.mean(ref_data))))
+            c =colormap(i);i+=1
+            mu_diff[point_label]  = list()
+            for data,ref_data in zip(all_vals[point_label],ref_evolution):
+                # Get mean distribution
+                mu_diff[point_label].append(np.abs(np.mean(data)-np.mean(ref_data)))
 
-                # Plot
-                plt.plot(all_times[point_label],mu_diff,'o',  label=rf'|$\mu-\mu_0$|z = {point_label:.3f} m',color=c)
-                #plt.plot(all_times[point_label],max_diff,'--',label=rf'max(|$x-\mu_0$|)z = {point_label:.3f} m',color=c)
+            # Plot
+            plt.plot(all_times[point_label],mu_diff[point_label],'o',  label=rf'|$\mu-\mu_0$| at z = {point_label:.3f} m',color=c)
+
+        if True:
+
+            global interest_interval
+            interest_interval = list()
+            global start_time
+            start_time = 0
+            global end_time
+            end_time = 0
+            global key_status2
+            key_status2 = ''
+            global aspan_list2
+            aspan_list2 = []
+            global dragging2
+            dragging2 = False
+
+            def on_click(x, y, button, pressed):
+                if button == Button.left:
+                    global key_status2
+                    key_status2 = 'pressed' if pressed else 'released'
+
+            listener = Listener(on_click = on_click)
+            listener.start()
+
+            def on_click(event):
+
+                if event.button is MouseButton.LEFT:
+                    # Create a vertical line on the Time clicked
+                    plt.axvline(x=event.xdata, linestyle='--',color='black',label='Time chosen')
+                    # Update legend box
+                    handles, labels = plt.gca().get_legend_handles_labels()
+                    by_label = dict(zip(labels, handles))
+                    plt.legend(by_label.values(), by_label.keys())
+                    # Update list
+                    global interest_interval
+                    interest_interval.append(event.xdata)
+                    # Draw
+                    plt.draw()
+
+                elif event.button is MouseButton.RIGHT:
+                    # Remove all lines
+                    for line in ax.lines:
+                        if line.get_color() == 'black' or line.get_color() == 'tab:orange':
+                            line.remove()
+                    # Remove all axvspans
+                    global aspan_list2
+                    for aspan in aspan_list2:
+                        if aspan.__dict__['_original_facecolor'] == 'tab:orange':
+                            aspan.remove()
+                            aspan_list2.remove(aspan)
+                    # Update legend box
+                    handles, labels = plt.gca().get_legend_handles_labels()
+                    by_label = dict(zip(labels, handles))
+                    plt.legend(by_label.values(), by_label.keys())
+                    # Delete list
+                    interest_interval.clear()
+                    # Draw
+                    plt.draw()
+
+            def on_move(event):
+
+                global interest_interval
+                global end_time
+                global start_time
+                global key_status2
+                global dragging2
+
+                # Update title with the Time position
+                try:
+                    ax.set_title(f'Time at z = {float(event.xdata):.5f} m')
+                except:
+                    ax.set_title('')
+
+                # Delete last green line and draw a new one if is into the figure
+                for line in ax.lines:
+                    if line.get_color() == 'g':
+                        line.remove()
+                # Try drawing new one (to avoid warning when out of box)
+                try:
+                    plt.axvline(x=event.xdata, color='g')
+                except:
+                    pass
+
+                # If control key is stroked start listening
+
+                if key_status2 == 'pressed':
+
+                    # Now we are dragging2
+                    dragging2 = True
+
+                    # Find last black line
+                    line = ax.lines[-2]
+                    if line.get_color() == 'black':
+                        # Get its position
+                        start_time = line.get_xdata()[0]
+                        # Make it green
+                        line.set_color("tab:green")
+                        # Make it continuous
+                        line.set_linestyle('-')
+                        # Make it thicker
+                        line.set_linewidth(2)
+
+                    # Get current position
+                    end_time = float(event.xdata)
+
+                    # Delete last area drawn
+                    try:
+                        if aspan_list2[-1].__dict__['_original_facecolor'] == 'tab:green':
+                            aspan_list2[-1].remove()
+                            aspan_list2.remove(aspan_list2[-1])
+                    except Exception as e:
+                        #print(e)
+                        pass
+
+                    # Draw newarea
+                    aspan_list2.append(plt.axvspan(start_time, end_time, alpha=0.3, color='tab:green'))
+
+                    # Update
+                    plt.draw()
+
+                elif key_status2 == 'released' and dragging2 == True:
+
+                    # Now we have stop dragging2
+                    dragging2 = False
+
+                    # Delete last temporal area drawn
+                    try:
+                        if aspan_list2[-1].__dict__['_original_facecolor'] == 'tab:green':
+                            aspan_list2[-1].remove()
+                    except Exception as e:
+                        #print(e)
+                        pass
+
+                    # Print definitive area
+                    plt.axvline(x=start_time, linestyle='-', linewidth=2,color='tab:orange',label='Interval edges')
+                    plt.axvline(x=end_time, linestyle='-', linewidth=2,color='tab:orange',label='Interval edges')
+                    aspan_list2.append(plt.axvspan(start_time, end_time, alpha=0.3, color='tab:orange', label='Interval choosen'))
+
+                    # Find green lines (temporal) and make it orange (fixed)
+                    for line in ax.lines:
+                        if line.get_color() == 'tab:green':
+                            # Make it orange
+                            line.set_color("tab:orange")
+                            # Make it continuous
+                            line.set_linestyle('-')
+                            # Make it thicker
+                            line.set_linewidth(2)
+                            # Make label none
+                            line.set_label(None)
+
+                    # Replace start Time with a list
+
+                    from copy import deepcopy
+                    interest_interval[-1] = [deepcopy(start_time), deepcopy(end_time)]
+                    # Restart key
+                    key_status2 = ''
+
+                    # Update legend box
+                    handles, labels = plt.gca().get_legend_handles_labels()
+                    by_label = dict(zip(labels, handles))
+                    plt.legend(by_label.values(), by_label.keys())
+
+                elif key_status2 == 'released' and dragging2 == False:
+                    key_status2 = ''
+
+                plt.draw()
+
+            def when_leaving_axes(event):
+                # Delete the dinamic line line when the mouse leaves the axes
+                for line in ax.lines:
+                    if line.get_color() == 'g':
+                        line.remove()
+                plt.draw()
+
+            # Connect the click and move events to the on_click and on_move functions
+            fig.canvas.mpl_connect('button_press_event', on_click)
+            fig.canvas.mpl_connect('motion_notify_event', on_move)
+            fig.canvas.mpl_connect('axes_leave_event', when_leaving_axes)
+
+            x_limits = [a.get_xlim() for a in  fig.axes[:-1]] ; x_limits = [item for tuple in x_limits for item in tuple]
+            #plt.setp(ax, xlim=(min(x_limits) , max(x_limits)))
 
         plt.grid()
         handles, labels = plt.gca().get_legend_handles_labels()
@@ -428,5 +609,34 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         plt.xlabel('Elapsed time [min]')
         plt.ylabel(ylabel,fontsize=20,labelpad=30).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         plt.show()
+
+        print('\n Intervals of interest:')
+        print(' ',interest_interval)
+
+    # Compute differences in the interest intervals
+    if isinstance(interest_interval,list):
+
+        # Show a all_diffs box and whiskers plot for each interval
+        for interval in interest_interval:
+
+
+
+            plt.figure()
+            i = 0
+            for point_label in points_labels:
+                idxs = find_index(all_times[point_label],interval)
+                c =colormap(i);i+=1
+                box = plt.boxplot(mu_diff[point_label][idx[0]:idx[1]],manage_ticks=True,
+                            patch_artist=True,
+                            showfliers = False,
+                            boxprops=dict(facecolor=c, color=c, alpha=0.3),
+                            capprops=dict(color=c),
+                            whiskerprops=dict(color=c,alpha=0),
+                            flierprops=dict(color=c, markeredgecolor=c),
+                            medianprops=dict(color=c,linewidth=2))
+            plt.show()
+
+
+
 
     return all_times,all_vals
