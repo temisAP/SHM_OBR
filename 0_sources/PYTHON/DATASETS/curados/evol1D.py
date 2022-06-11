@@ -610,31 +610,46 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         plt.ylabel(ylabel,fontsize=20,labelpad=30).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         plt.show()
 
-        print('\n Intervals of interest:')
+        print('\nIntervals of interest:')
         print(' ',interest_interval)
 
     # Compute differences in the interest intervals
     if isinstance(interest_interval,list):
 
+        all_diffs = dict.fromkeys(points_labels)
+        print('\nMean diference between mean differences')
+
         # Show a all_diffs box and whiskers plot for each interval
         for interval in interest_interval:
-
-
 
             plt.figure()
             i = 0
             for point_label in points_labels:
+                # Get index
                 idxs = find_index(all_times[point_label],interval)
+                # Get color and position
                 c =colormap(i);i+=1
-                box = plt.boxplot(mu_diff[point_label][idx[0]:idx[1]],manage_ticks=True,
+
+                all_diffs[point_label]  = np.mean(mu_diff[point_label][idxs[0]:idxs[1]])
+                box = plt.boxplot(mu_diff[point_label][idxs[0]:idxs[1]],positions = [i], manage_ticks=True,
+                            widths=(1.2),
                             patch_artist=True,
                             showfliers = False,
-                            boxprops=dict(facecolor=c, color=c, alpha=0.3),
+                            boxprops=dict(facecolor=c, color=c, alpha=0.5),
                             capprops=dict(color=c),
-                            whiskerprops=dict(color=c,alpha=0),
+                            whiskerprops=dict(color=c),
                             flierprops=dict(color=c, markeredgecolor=c),
-                            medianprops=dict(color=c,linewidth=2))
+                            medianprops=dict(color=c))
+
+            plt.xticks([y+1 for y in range(len(points_labels))], [rf'z = {round(pl,3)} m' for pl in points_labels])
+            plt.ylabel(r'|$\mu-\mu_0$|')
+            plt.ylim((-0.23e-5, 9.99e-5))
+            plt.grid()
             plt.show()
+
+            print(' For interval between:',interval,'min')
+            print(' ',[d[1] for d in all_diffs.items()])
+
 
 
 
