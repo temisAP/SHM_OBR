@@ -3,7 +3,7 @@ import pandas as pd
 import ast
 import matplotlib.pyplot as plt
 
-file = './meanOFmeans.csv'
+file = './meanOFmeans2.csv'
 
 
 # Read csv with columns 'Label' and 'Value' and no index

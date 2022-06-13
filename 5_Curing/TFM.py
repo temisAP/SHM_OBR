@@ -6,7 +6,7 @@ from DATASETS import DATASETS
 from IA import IA
 
 
-dataset = 'Aluminio_asimetrico'
+dataset = 'Acero_simetrico'
 #path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/SHM/98_data/0_Curados/{dataset}'
 path_to_folder = f'/media/temis/Seagate Backup Plus Drive/Andres/0_Curados/TFM/{dataset}'
 
@@ -80,6 +80,7 @@ elif dataset == 'Carbono_simetrico':
     #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
     #CM2_obj.curing_evol1D(REF='0.obr',val='ss')
     CM2_obj.curing_evol1D(REF='0.obr',points=  [[2.1088701743198897, 2.434271030694304], [2.5644313732440693, 2.7644926404964876], [2.807879421346409, 3.0151718187404803], [3.4827849012340835, 3.697308428769808], [3.7937234973251903, 4.041992298855299], [4.107072470130182, 4.246874319535486], [4.442114833360135, 4.591558189620977]],val='ss')
+    #CM2_obj.curing_evol1D(REF='0.obr',points=  [[2.1088701743198897, 2.434271030694304]],val='ss')
     #CM2_obj.curing_evol1D(REF='0.obr',points=[2.3,2.7,2.95,3.4,3.66,3.95,4.20],val='ss')
 
 elif dataset == 'Drift4':

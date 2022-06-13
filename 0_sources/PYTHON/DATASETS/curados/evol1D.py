@@ -628,11 +628,16 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
             for point_label in points_labels:
                 # Get index
                 idxs = find_index(all_times[point_label],interval)
+                data = mu_diff[point_label][idxs[0]:idxs[1]]
                 # Get color and position
                 c =colormap(i);i+=1
+                # Delete marginal values
+                q1 = np.percentile(data,25)
+                q3 = np.percentile(data,75)
+                data = [val for val in data if val>=q1 and val<=q3]
 
-                all_diffs[point_label]  = np.mean(mu_diff[point_label][idxs[0]:idxs[1]])
-                box = plt.boxplot(mu_diff[point_label][idxs[0]:idxs[1]],positions = [i], manage_ticks=True,
+                all_diffs[point_label]  = np.mean(data)
+                box = plt.boxplot(data,positions = [i], manage_ticks=True,
                             widths=(1.2),
                             patch_artist=True,
                             showfliers = False,

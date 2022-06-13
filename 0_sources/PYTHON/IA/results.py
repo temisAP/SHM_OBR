@@ -189,7 +189,7 @@ def linear_regression(x,a,b):
 def accuracy(xdata, ydata):
     from scipy.optimize import curve_fit
     popt, pcov = curve_fit(linear_regression, xdata, ydata)
-    residuals = ydata- linear_regression(xdata, *popt)
+    residuals = ydata - linear_regression(xdata, *popt)
     ss_res = np.sum(residuals**2)
     ss_tot = np.sum((ydata-np.mean(ydata))**2)
     r_squared = 1 - (ss_res / ss_tot)
