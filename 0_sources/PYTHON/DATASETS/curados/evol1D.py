@@ -388,8 +388,9 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         plt.ylabel(ylabel,fontsize=20,labelpad=30).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         plt.show()
 
-    # t-difference plot
+    # t-selectable plot
     if plot:
+
 
         # Manage colormap
         if len(points) <= 10:

@@ -3,7 +3,7 @@ import pandas as pd
 import ast
 import matplotlib.pyplot as plt
 
-file = './meanOFmeans2.csv'
+file = './meanOFmeans.csv'
 
 
 # Read csv with columns 'Label' and 'Value' and no index
@@ -18,10 +18,11 @@ fig = plt.figure(figsize=(8,6))
 ax = fig.add_subplot(111)
 
 for index, row in df.iterrows():
-    ax.plot(range(n_points),row['Value'],'-o',label=row['Label'])
+    ax.plot(range(n_points),np.abs(row['Value']),'-o',label=row['Label'])
 
 plt.xticks([y for y in range(n_points)], [y for y in range(n_points)])
-ax.set_ylabel(r'|$\mu-\mu_0$|')
+ylabel = r'$-\frac{\Delta \nu}{\bar{\nu}}$'
+plt.ylabel(fr'$\mu$('+ylabel+')',fontsize=10,labelpad=20).set_rotation(0)
 ax.set_xlabel('Segment index')
 ax.grid()
 ax.legend()
