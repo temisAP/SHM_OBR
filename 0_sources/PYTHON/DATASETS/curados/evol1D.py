@@ -87,7 +87,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
     z = self.measures[REF][file].x * 1e3 # mm to m
 
     # z plot
-    if plot == False:
+    if plot:
 
         fig, ax = plt.subplots()
         max_elapsed_time = REF_time - REF_time; max_elapsed_time = max_elapsed_time.total_seconds() / 60
@@ -349,7 +349,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         print('No points found')
 
     # t plot
-    if plot == False:
+    if plot:
 
         # Manage colormap
         if len(points) <= 10:
@@ -410,16 +410,16 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
             if j == 0:
                 ref_evolution = np.array(all_vals[point_label])
                 j += 1
-                print('\nReference set in/between:',point,'m')
 
             c =colormap(i);i+=1
             mu_diff[point_label]  = list()
             for data,ref_data in zip(all_vals[point_label],ref_evolution):
                 # Get mean distribution
-                mu_diff[point_label].append(np.abs(np.mean(data)-np.mean(ref_data)))
+                #mu_diff[point_label].append(np.abs(np.mean(data)-np.mean(ref_data)))
+                mu_diff[point_label].append(np.mean(data))
 
             # Plot
-            plt.plot(all_times[point_label],mu_diff[point_label],'o',  label=rf'|$\mu-\mu_0$| at z = {point_label:.3f} m',color=c)
+            plt.plot(all_times[point_label],mu_diff[point_label],'o',  label=rf'z = {point_label:.3f} m',color=c)
 
         if True:
 
@@ -641,9 +641,9 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                             flierprops=dict(color=c, markeredgecolor=c),
                             medianprops=dict(color=c))
 
-            plt.xticks([y+1 for y in range(len(points_labels))], [rf'z = {round(pl,3)} m' for pl in points_labels])
-            plt.ylabel(r'|$\mu-\mu_0$|')
-            plt.ylim((-0.23e-5, 9.99e-5))
+            plt.xticks([y+1 for y in range(len(points_labels))], [rf'{round(pl,3)}' for pl in points_labels])
+            plt.xlabel('z [m]')
+            plt.ylabel(fr'$\mu$('+ylabel+')',fontsize=10,labelpad=20).set_rotation(0)
             plt.grid()
             plt.show()
 
