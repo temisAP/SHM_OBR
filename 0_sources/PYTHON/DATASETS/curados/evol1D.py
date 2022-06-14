@@ -91,18 +91,20 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
         fig, ax = plt.subplots()
         max_elapsed_time = REF_time - REF_time; max_elapsed_time = max_elapsed_time.total_seconds() / 60
+        min_elapsed_time = REF_time - REF_time; min_elapsed_time = min_elapsed_time.total_seconds() / 60
         for idx,file in enumerate(files):
             if idx%3 == 0:
                 file_time = datetime.strptime(self.obrfiles[files[idx]].date,"%Y,%m,%d,%H:%M:%S")
                 elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60  # seconds to minutes
                 max_elapsed_time = elapsed_time if elapsed_time > max_elapsed_time else max_elapsed_time
+                min_elapsed_time = elapsed_time if elapsed_time < min_elapsed_time else min_elapsed_time
                 plt.plot(z,val_distributions[idx],'o',color=plt.cm.jet(find_index(time_distribution,elapsed_time)/len(time_distribution)))
 
-        sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=0, vmax=max_elapsed_time))
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=min_elapsed_time, vmax=max_elapsed_time))
         cbar = plt.colorbar(sm,spacing='proportional')
         cbar.set_label('Elapsed\ntime\n[min]',rotation=0,labelpad=15)
         plt.xlabel('z [m]')
-        plt.ylabel(ylabel,fontsize=20,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
+        plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
 
         plt.grid()
 
@@ -341,7 +343,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
                 file_time = datetime.strptime(self.obrfiles[file].date,"%Y,%m,%d,%H:%M:%S")
                 elapsed_time = file_time - REF_time
-                times.append(elapsed_time.seconds)
+                times.append(elapsed_time.total_seconds())
 
             all_vals[point_label]     = vals
             all_times[point_label]    = np.array(times)/60
@@ -385,7 +387,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys())
         plt.xlabel('Elapsed time [min]')
-        plt.ylabel(ylabel,fontsize=20,labelpad=30).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
+        plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         plt.show()
 
     # t-selectable plot
@@ -490,7 +492,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
                 # Update title with the Time position
                 try:
-                    ax.set_title(f'Time at z = {float(event.xdata):.5f} m')
+                    ax.set_title(f'Time at t = {float(event.xdata):.5f} s')
                 except:
                     ax.set_title('')
 
@@ -608,7 +610,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys())
         plt.xlabel('Elapsed time [min]')
-        plt.ylabel(ylabel,fontsize=20,labelpad=30).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
+        plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         plt.show()
 
         print('\nIntervals of interest:')
@@ -625,39 +627,47 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
             plt.figure()
             i = 0
-            for point_label in points_labels:
-                # Get index
-                idxs = find_index(all_times[point_label],interval)
-                data = mu_diff[point_label][idxs[0]:idxs[1]]
-                # Get color and position
-                c =colormap(i);i+=1
-                # Delete marginal values
-                q1 = np.percentile(data,25)
-                q3 = np.percentile(data,75)
-                data = [val for val in data if val>=q1 and val<=q3]
+            if isinstance(interval,list):
+                for point_label in points_labels:
+                    # Get index
+                    idxs = find_index(all_times[point_label],interval)
+                    data = mu_diff[point_label][idxs[0]:idxs[1]]
+                    # Get color and position
+                    c =colormap(i);i+=1
+                    # Delete marginal values
+                    q1 = np.percentile(data,25)
+                    q3 = np.percentile(data,75)
+                    data = [val for val in data if val>=q1 and val<=q3]
 
-                all_diffs[point_label]  = np.mean(data)
-                box = plt.boxplot(data,positions = [i], manage_ticks=True,
-                            widths=(1.2),
-                            patch_artist=True,
-                            showfliers = False,
-                            boxprops=dict(facecolor=c, color=c, alpha=0.5),
-                            capprops=dict(color=c),
-                            whiskerprops=dict(color=c),
-                            flierprops=dict(color=c, markeredgecolor=c),
-                            medianprops=dict(color=c))
+                    all_diffs[point_label]  = np.mean(data)
+                    box = plt.boxplot(data,positions = [i], manage_ticks=True,
+                                widths=(1.2),
+                                patch_artist=True,
+                                showfliers = False,
+                                boxprops=dict(facecolor=c, color=c, alpha=0.5),
+                                capprops=dict(color=c),
+                                whiskerprops=dict(color=c),
+                                flierprops=dict(color=c, markeredgecolor=c),
+                                medianprops=dict(color=c))
 
-            plt.xticks([y+1 for y in range(len(points_labels))], [rf'{round(pl,3)}' for pl in points_labels])
-            plt.xlabel('z [m]')
-            plt.ylabel(fr'$\mu$('+ylabel+')',fontsize=10,labelpad=20).set_rotation(0)
-            plt.grid()
-            plt.show()
+                plt.xticks([y+1 for y in range(len(points_labels))], [rf'{round(pl,3)}' for pl in points_labels])
+                plt.xlabel('z [m]')
+                plt.ylabel(fr'$\mu$('+ylabel+')',fontsize=15,labelpad=20).set_rotation(0)
+                plt.grid()
+                plt.show()
 
-            print(' For interval between:',interval,'min')
-            print(' ',[d[1] for d in all_diffs.items()])
+                print(' For interval between:',interval,'min')
+                print(' ',[d[1] for d in all_diffs.items()])
 
+            else
+                for point_label in points_labels:
+                    # Get index
+                    idx = find_index(all_times[point_label],interval)
+                    data = mu_diff[point_label][idx]
+                    all_diffs[point_label]  = data
 
-
+                print(' For time:',interval,'min')
+                print(' ',[d[1] for d in all_diffs.items()])
 
 
     return all_times,all_vals
