@@ -6,7 +6,7 @@ from DATASETS import DATASETS
 from IA import IA
 
 
-dataset = 'Acero_simetrico'
+dataset = 'Aluminio_simetrico'
 #path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/SHM/98_data/0_Curados/{dataset}'
 path_to_folder = f'/media/temis/Seagate Backup Plus Drive/Andres/0_Curados/TFM/{dataset}'
 
