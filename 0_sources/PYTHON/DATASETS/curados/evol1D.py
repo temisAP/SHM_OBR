@@ -98,7 +98,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                 elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60  # seconds to minutes
                 max_elapsed_time = elapsed_time if elapsed_time > max_elapsed_time else max_elapsed_time
                 min_elapsed_time = elapsed_time if elapsed_time < min_elapsed_time else min_elapsed_time
-                plt.plot(z,val_distributions[idx],'o',color=plt.cm.jet(find_index(time_distribution,elapsed_time)/len(time_distribution)))
+                plt.plot(z,val_distributions[idx],'v',color=plt.cm.jet(find_index(time_distribution,elapsed_time)/len(time_distribution)))
 
         sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=min_elapsed_time, vmax=max_elapsed_time))
         cbar = plt.colorbar(sm,spacing='proportional')
@@ -371,7 +371,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
             if isinstance(all_vals[point_label][0],float):
                 plt.plot(all_times[point_label],all_vals[point_label],
-                    'o',label=f'z = {point_label:.3f} m',color=colormap(i)); i+=1
+                    'v',label=f'z = {point_label:.3f} m',color=colormap(i)); i+=1
             else:
                 c =colormap(i);i+=1
                 mu = list()
@@ -380,7 +380,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                     mu.append(np.mean(data))
 
                 # Append a list
-                line = plt.plot(all_times[point_label],mu,'o',label=f'z = {point_label:.3f} m',color=c)
+                line = plt.plot(all_times[point_label],mu,'v',label=f'z = {point_label:.3f} m',color=c)
 
         plt.grid()
         handles, labels = plt.gca().get_legend_handles_labels()
@@ -388,6 +388,9 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         plt.legend(by_label.values(), by_label.keys())
         plt.xlabel('Elapsed time [min]')
         plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
+        plt.xlim(0,40)
+        plt.ylim(-2.5e-5,7e-7)
+        plt.tight_layout()
         plt.show()
 
     # t-selectable plot
@@ -422,7 +425,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                 mu_diff[point_label].append(np.mean(data))
 
             # Plot
-            plt.plot(all_times[point_label],mu_diff[point_label],'o',  label=rf'z = {point_label:.3f} m',color=c)
+            plt.plot(all_times[point_label],mu_diff[point_label],'v',  label=rf'z = {point_label:.3f} m',color=c)
 
         if True:
 
@@ -659,7 +662,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                 print(' For interval between:',interval,'min')
                 print(' ',[d[1] for d in all_diffs.items()])
 
-            else
+            else:
                 for point_label in points_labels:
                     # Get index
                     idx = find_index(all_times[point_label],interval)

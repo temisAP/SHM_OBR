@@ -3,7 +3,7 @@ import pandas as pd
 import ast
 import matplotlib.pyplot as plt
 
-file = './meanOFmeans2.csv'
+file = './UTILS.csv'
 
 
 # Read csv with columns 'Label' and 'Value' and no index
@@ -22,11 +22,9 @@ for index, row in df.iterrows():
 
 plt.xticks([y for y in range(n_points)], [y for y in range(n_points)])
 ylabel = r'$-\frac{\Delta \nu}{\bar{\nu}}$'
-plt.ylabel(fr'$\mu$('+ylabel+')',fontsize=10,labelpad=20).set_rotation(0)
+plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0)
 ax.set_xlabel('Segment index')
 ax.grid()
 ax.legend()
-locs,labels = plt.yticks()
-plt.yticks(locs, map(lambda x: round(x,3), locs*1e5))
-plt.text(0.0, 1.01, '1e-5', fontsize=10, transform = plt.gca().transAxes)
+plt.tight_layout()
 plt.show()
