@@ -32,6 +32,8 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
     """
 
+    markermap = ['o','v','D','X','^','s','P']
+
     """ Check out """
     self.conditions_checkout()
     self.obr_checkout()
@@ -371,7 +373,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
             if isinstance(all_vals[point_label][0],float):
                 plt.plot(all_times[point_label],all_vals[point_label],
-                    'v',label=f'z = {point_label:.3f} m',color=colormap(i)); i+=1
+                    markermap[i-1],label=f'z = {point_label:.3f} m',color=colormap(i)); i+=1
             else:
                 c =colormap(i);i+=1
                 mu = list()
@@ -380,7 +382,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                     mu.append(np.mean(data))
 
                 # Append a list
-                line = plt.plot(all_times[point_label],mu,'v',label=f'z = {point_label:.3f} m',color=c)
+                line = plt.plot(all_times[point_label],mu,markermap[i-1],label=f'z = {point_label:.3f} m',color=c)
 
         plt.grid()
         handles, labels = plt.gca().get_legend_handles_labels()
@@ -425,7 +427,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                 mu_diff[point_label].append(np.mean(data))
 
             # Plot
-            plt.plot(all_times[point_label],mu_diff[point_label],'v',  label=rf'z = {point_label:.3f} m',color=c)
+            plt.plot(all_times[point_label],mu_diff[point_label],markermap[i-1],  label=rf'z = {point_label:.3f} m',color=c)
 
         if True:
 

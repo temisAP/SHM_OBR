@@ -5,7 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../0_sources/PYTHON'))
 from DATASETS import DATASETS
 from IA import IA
 
-dataset = 'asimetrico'
+dataset = 'compensado'
 #path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/SHM/98_data/0_Curados/{dataset}'
 path_to_folder = f'/media/temis/Seagate Backup Plus Drive/Andres/0_Curados/CE2/{dataset}'
 
