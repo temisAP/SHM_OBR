@@ -305,6 +305,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys())
+        plt.ylim(-6e-5,0.99e-5)
 
         plt.show()
 
@@ -382,7 +383,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                     mu.append(np.mean(data))
 
                 # Append a list
-                line = plt.plot(all_times[point_label],mu,markermap[i-1],label=f'z = {point_label:.3f} m',color=c)
+                line = plt.plot(all_times[point_label],mu,markermap[i-1],label=f'Segment no{i}',color=c)
 
         plt.grid()
         handles, labels = plt.gca().get_legend_handles_labels()
@@ -390,8 +391,8 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         plt.legend(by_label.values(), by_label.keys())
         plt.xlabel('Elapsed time [min]')
         plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
-        plt.xlim(0,40)
-        plt.ylim(-2.5e-5,7e-7)
+        #plt.xlim(0,40)
+        plt.ylim(-6e-5,0.99e-5)
         plt.tight_layout()
         plt.show()
 

@@ -6,7 +6,7 @@ from DATASETS import DATASETS
 from IA import IA
 
 
-dataset = 'Aluminio_asimetrico'
+dataset = 'Acero_simetrico2'
 #path_to_folder = f'/mnt/sda/0_Andres/1_Universidad/SHM/98_data/0_Curados/{dataset}'
 path_to_folder = f'/media/temis/Seagate Backup Plus Drive/Andres/0_Curados/TFM/{dataset}'
 
@@ -56,6 +56,13 @@ elif dataset == 'Acero_asimetrico':
     CM2_obj.curing_evol1D(REF=obrREF,points=[],val='ss')
 
     # Ni idea de qué pasa aquí, quizá haya que repetir
+
+elif dataset == 'Acero_simetrico2':
+
+    #CM2_obj.take_a_look('0',['60','120','180'],limit1=2,limit2=4.6,delta=500,val='ss')
+    #CM2_obj.curing_evol1D(REF='3900.obr',val='ss')
+    CM2_obj.curing_evol1D(REF='3900.obr',points=[[2.400306549737465, 2.484317294233903], [2.534723740931766, 2.628069012594475], [2.947309841680939, 3.124665857840086], [3.1825399262709655, 3.290820441399708], [3.664201528050543, 3.7575467997132517], [3.821021584443894, 3.923701383272874]],val='ss')
+
 
 elif dataset == 'Acero_simetrico':
 
