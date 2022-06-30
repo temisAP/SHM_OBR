@@ -86,6 +86,8 @@ class DATASETS(object):
             # IA object
             self.IA_obj = IA(self.path,name='IA')
 
+            self.conditions_checkout(stop=False)
+
 
     def compute(self):
 

@@ -17,7 +17,10 @@ from scipy.interpolate import interp1d
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from UTILS.utils import find_index
 
-def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
+def curing_evol1D(self,points=None,REF=None,files=None,
+                    val='ss',plot=True,
+                    base_marker = 'v',marker_size=0.75, markermap = ['o','v','D','X','^','s','P'],
+                    t='time',t_limits = None,colorIS = 'Elapsed\ntime\n[min]'):
 
     """ Function get SPECTRAL SHIFT/TEMPERATURE/DEFORMATION along a curing
     process in a given points (up to six)
@@ -32,31 +35,39 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
     """
 
-    markermap = ['o','v','D','X','^','s','P']
-
     """ Check out """
     self.conditions_checkout()
     self.obr_checkout()
+
+    # Determine if there are more than one evolution -> Filename contains EvoX_
+    if all(['Evo' in n for n in self.obrfiles.keys()]):
+        print('More than one evolution found')
+        t_pos = 1
+    else:
+        t_pos = 0
+
 
     # Find the earliest file if no ref is specified
     if not REF:
 
         keys            = list(self.obrfiles.keys())
-        earliest_date   = datetime.strptime(self.obrfiles[keys[0]].date,"%Y,%m,%d,%H:%M:%S")
+        earliest_date   = datetime.strptime(self.obrfiles[keys[0]].date,"%Y,%m,%d,%H:%M:%S") if t=='time' else float(self.obrfiles[keys[0]].name.split('_')[t_pos])
         REF             = self.obrfiles[keys[0]].filename
 
         for obrfile in self.obrfiles.values():
-            file_date = datetime.strptime(obrfile.date,"%Y,%m,%d,%H:%M:%S")
+            file_date = datetime.strptime(obrfile.date,"%Y,%m,%d,%H:%M:%S") if t=='time' else float(obrfile.name.split('_')[t_pos])
             if file_date < earliest_date:
                 earliest_date = file_date
                 REF = obrfile.filename
 
         print(REF,'will be used as reference')
 
-    REF_time = datetime.strptime(self.obrfiles[REF].date,"%Y,%m,%d,%H:%M:%S")
+    REF_time = datetime.strptime(self.obrfiles[REF].date,"%Y,%m,%d,%H:%M:%S") if t=='time' else float(self.obrfiles[REF].name.split('_')[t_pos])
 
     # Get all files if none is specified
     files = files if files else list(self.obrfiles.keys())
+    if t_pos == 1:
+        files = sort_evo(files)
     files.remove(REF) if REF in files else False
 
     # Compute measures if no measueres computed
@@ -77,13 +88,18 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
             val_distribution = self.measures[REF][file].T
             ylabel = r'$\Delta T$[K]'
         elif val == 'def':
-            val_distribution = self.measures[REF][file].E
+            #val_distribution = self.measures[REF][file].E
+            val_distribution = self.measures[REF][file].ss * 189394.17022471415 * -6.6680 * -8.80840637e2/119.88246527477283
             ylabel = r'$\Delta \mu \varepsilon$'
 
         val_distributions.append(val_distribution)
 
-        file_time = datetime.strptime(self.obrfiles[file].date,"%Y,%m,%d,%H:%M:%S")
-        elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60
+        if t=='time':
+            file_time = datetime.strptime(self.obrfiles[file].date,"%Y,%m,%d,%H:%M:%S")
+            elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60
+        else:
+            file_time = float(self.obrfiles[file].name.split('_')[t_pos])
+            elapsed_time = file_time - REF_time
         time_distribution.append(elapsed_time)
 
     z = self.measures[REF][file].x * 1e3 # mm to m
@@ -92,19 +108,38 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
     if plot:
 
         fig, ax = plt.subplots()
-        max_elapsed_time = REF_time - REF_time; max_elapsed_time = max_elapsed_time.total_seconds() / 60
-        min_elapsed_time = REF_time - REF_time; min_elapsed_time = min_elapsed_time.total_seconds() / 60
+        if not t_limits and t=='time':
+            max_elapsed_time = REF_time - REF_time; max_elapsed_time = max_elapsed_time.total_seconds() / 60 # sconds to minutes
+            min_elapsed_time = REF_time - REF_time; min_elapsed_time = min_elapsed_time.total_seconds() / 60 # sconds to minutes
+        elif not t_limits and t!='time':
+            max_elapsed_time = REF_time - REF_time
+            min_elapsed_time = REF_time - REF_time
+        elif t_limits:
+            max_elapsed_time = t_limits[1]
+            min_elapsed_time = t_limits[0]
+
+        if len(files)>= 100:
+            leap = 3
+        else:
+            leap = 1
+
         for idx,file in enumerate(files):
-            if idx%3 == 0:
-                file_time = datetime.strptime(self.obrfiles[files[idx]].date,"%Y,%m,%d,%H:%M:%S")
-                elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60  # seconds to minutes
-                max_elapsed_time = elapsed_time if elapsed_time > max_elapsed_time else max_elapsed_time
-                min_elapsed_time = elapsed_time if elapsed_time < min_elapsed_time else min_elapsed_time
-                plt.plot(z,val_distributions[idx],'v',color=plt.cm.jet(find_index(time_distribution,elapsed_time)/len(time_distribution)))
+            if idx%leap == 0:
+                file_time = datetime.strptime(self.obrfiles[files[idx]].date,"%Y,%m,%d,%H:%M:%S") if t=='time' else float(self.obrfiles[files[idx]].name.split('_')[t_pos])
+                elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60 if t=='time' else elapsed_time
+                if not t_limits:
+                    max_elapsed_time = elapsed_time if elapsed_time > max_elapsed_time else max_elapsed_time
+                    min_elapsed_time = elapsed_time if elapsed_time < min_elapsed_time else min_elapsed_time
+
+        for idx,file in enumerate(files):
+            if idx%leap == 0:
+                file_time = datetime.strptime(self.obrfiles[files[idx]].date,"%Y,%m,%d,%H:%M:%S") if t=='time' else float(self.obrfiles[files[idx]].name.split('_')[t_pos])
+                elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60 if t=='time' else elapsed_time
+                plt.plot(z,val_distributions[idx],base_marker,markersize=marker_size,color=plt.cm.jet((elapsed_time-min_elapsed_time)/(max_elapsed_time-min_elapsed_time)))
 
         sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=min_elapsed_time, vmax=max_elapsed_time))
         cbar = plt.colorbar(sm,spacing='proportional')
-        cbar.set_label('Elapsed\ntime\n[min]',rotation=0,labelpad=15)
+        cbar.set_label(colorIS,rotation=0,labelpad=15)
         plt.xlabel('z [m]')
         plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
 
@@ -305,8 +340,9 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys())
-        plt.ylim(-6e-5,0.99e-5)
+        plt.ylim(-2000,5000)
 
+        plt.tight_layout()
         plt.show()
 
         print('\nPoints choosen:')
@@ -330,13 +366,14 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
             vals    = list()
             times   = list()
-            idx = find_index(z,point)
+            idx     = find_index(z,point)
 
             for val_distro,file in zip(val_distributions,files):
                 if isinstance(idx,int) or isinstance(idx,np.integer):
                     vals.append(val_distro[idx])
                 elif isinstance(idx,list):
                     # Get all values in segment
+                    idx.sort()
                     data = np.array(val_distro[idx[0]:idx[1]])
                     # Delete marginal values
                     q1 = np.percentile(data,25)
@@ -344,12 +381,12 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
                     data = [val for val in data if val>=q1 and val<=q3]
                     vals.append(data)
 
-                file_time = datetime.strptime(self.obrfiles[file].date,"%Y,%m,%d,%H:%M:%S")
-                elapsed_time = file_time - REF_time
-                times.append(elapsed_time.total_seconds())
+                file_time = datetime.strptime(self.obrfiles[file].date,"%Y,%m,%d,%H:%M:%S") if t=='time' else float(self.obrfiles[file].name.split('_')[t_pos])
+                elapsed_time = file_time - REF_time; elapsed_time = elapsed_time.total_seconds() / 60 if t=='time' else elapsed_time
+                times.append(elapsed_time)
 
             all_vals[point_label]     = vals
-            all_times[point_label]    = np.array(times)/60
+            all_times[point_label]    = times
     else:
         print('No points found')
 
@@ -368,9 +405,10 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
         for point_label,point in zip(points_labels,points):
             # Sort by time
-            new_idx = np.argsort(all_times[point_label])
-            all_times[point_label] = [all_times[point_label][int(i)] for i in new_idx]
-            all_vals[point_label]  = [all_vals[point_label][int(i)] for i in new_idx]
+            if t == 'time':
+                new_idx = np.argsort(all_times[point_label])
+                all_times[point_label] = [all_times[point_label][int(i)] for i in new_idx]
+                all_vals[point_label]  = [all_vals[point_label][int(i)] for i in new_idx]
 
             if isinstance(all_vals[point_label][0],float):
                 plt.plot(all_times[point_label],all_vals[point_label],
@@ -389,10 +427,10 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys())
-        plt.xlabel('Elapsed time [min]')
+        plt.xlabel(colorIS.replace('\n',' '))
         plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         #plt.xlim(0,40)
-        plt.ylim(-6e-5,0.99e-5)
+        #plt.ylim(-6e-5,0.99e-5)
         plt.tight_layout()
         plt.show()
 
@@ -498,7 +536,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
                 # Update title with the Time position
                 try:
-                    ax.set_title(f'Time at t = {float(event.xdata):.5f} s')
+                    ax.set_title(f'Point at t = {float(event.xdata):.5f} s') if t=='time' else ax.set_title(f'Point at {float(event.xdata):.5f} [{t}]')
                 except:
                     ax.set_title('')
 
@@ -615,7 +653,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys())
-        plt.xlabel('Elapsed time [min]')
+        plt.xlabel(colorIS.replace('\n',' '))
         plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         plt.show()
 
@@ -677,3 +715,16 @@ def curing_evol1D(self,points=None,REF=None,files=None,val='ss',plot=True):
 
 
     return all_times,all_vals
+
+
+def sort_evo(files):
+    """
+    Funtion to sort filenames formated as: "EvoX_NN"
+    first by its evolution (X) then by the number after "_" (NN)
+
+        param:  files (list of string) : list of original filenames
+        return: files (list of string) : list of sorted filenames
+
+    """
+    files.sort(key=lambda x: (int(x.split("_")[0].replace("Evo",'')), float(x.split("_")[1].replace('.obr',''))))
+    return files

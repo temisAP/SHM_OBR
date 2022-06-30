@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['0_sources/PYTHON/UTILS/sensor.py', '1_data/TD_gen.py']
+recent_files = ['7_Ensayos/concrete_beam.py', '7_Ensayos/dacomat.py', '0_sources/PYTHON/DATASETS/curados/evol1D.py']
 
 [main]
 version = 0.2.0

@@ -1,6 +1,6 @@
 import os
 
-def conditions_checkout(self):
+def conditions_checkout(self,stop=True):
     """ Conditions file checkout """
 
     conditions_file =   os.path.join(self.path,self.folders['4_INFORMATION'],self.INFO['conditions filename'])
@@ -8,7 +8,7 @@ def conditions_checkout(self):
     if not os.path.exists(conditions_file):
         print('\nNo conditions file found')
         self.genCONDITIONStemplate()
-        exit()
+        exit() if stop else None
 
 def obr_checkout(self):
 
