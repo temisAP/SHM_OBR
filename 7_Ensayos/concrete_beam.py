@@ -35,10 +35,10 @@ if False:
 
 # 1D evolution of available datasets
 
-base_marker = 'o'
+base_marker = ['o','v','D','X','P']
 markermap = ['-o','-v','-D','-X','-^','-s','-P']
 
 #CM2_obj.take_a_look('Evo1_10',['Evo1_20','Evo1_40.7','Evo1_107.6'],limit1=5.3,limit2=16,delta=500,val='ss')
 #CM2_obj.curing_evol1D(REF='0.obr',val='def',t='',colorIS='Load\n[kN]')
-CM2_obj.curing_evol1D(val='def',base_marker=base_marker,markermap =markermap,t='kN',colorIS='Load\n[kN]')
+CM2_obj.curing_evol1D(val='def',points=[[6.473352748066472, 6.566420723954716], [10.974458491025164, 11.084447917074906], [13.698811967026476, 13.884947918802963]],base_marker=base_marker,marker_size=3,markermap =markermap,t='kN',colorIS='Load\n[kN]')
 #CM2_obj.curing_evol1D(REF='0.obr',points=[],val='ss')

@@ -39,7 +39,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,
     self.conditions_checkout()
     self.obr_checkout()
 
-    # Determine if there are more than one evolution -> Filename contains EvoX_
+    # Determine if there are more than one evolution -> All filenames contains EvoX_
     if all(['Evo' in n for n in self.obrfiles.keys()]):
         print('More than one evolution found')
         t_pos = 1
@@ -118,6 +118,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,
             max_elapsed_time = t_limits[1]
             min_elapsed_time = t_limits[0]
 
+        # To avoid managing too much files in the plot
         if len(files)>= 100:
             leap = 3
         else:
@@ -135,7 +136,13 @@ def curing_evol1D(self,points=None,REF=None,files=None,
             if idx%leap == 0:
                 file_time = datetime.strptime(self.obrfiles[files[idx]].date,"%Y,%m,%d,%H:%M:%S") if t=='time' else float(self.obrfiles[files[idx]].name.split('_')[t_pos])
                 elapsed_time = file_time - REF_time ; elapsed_time = elapsed_time.total_seconds() / 60 if t=='time' else elapsed_time
-                plt.plot(z,val_distributions[idx],base_marker,markersize=marker_size,color=plt.cm.jet((elapsed_time-min_elapsed_time)/(max_elapsed_time-min_elapsed_time)))
+                if t_pos == 0:
+                    plt.plot(z,val_distributions[idx],base_marker,markersize=marker_size,color=plt.cm.jet((elapsed_time-min_elapsed_time)/(max_elapsed_time-min_elapsed_time)))
+                elif t_pos == 1:
+                    mk_idx = int(file.split('_')[0].replace('Evo',''))
+                    plt.plot(z,val_distributions[idx],base_marker[mk_idx-1],markersize=marker_size,label = f'Evolution no{mk_idx}',
+                        color=plt.cm.jet((elapsed_time-min_elapsed_time)/(max_elapsed_time-min_elapsed_time)))
+
 
         sm = plt.cm.ScalarMappable(cmap=plt.cm.jet, norm=plt.Normalize(vmin=min_elapsed_time, vmax=max_elapsed_time))
         cbar = plt.colorbar(sm,spacing='proportional')
@@ -185,7 +192,11 @@ def curing_evol1D(self,points=None,REF=None,files=None,
                     # Update legend box
                     handles, labels = plt.gca().get_legend_handles_labels()
                     by_label = dict(zip(labels, handles))
-                    plt.legend(by_label.values(), by_label.keys())
+                    lgnd = plt.legend(by_label.values(), by_label.keys())
+                    if t_pos == 1:
+                        for lgnd_i in range(mk_idx):
+                            lgnd.legendHandles[lgnd_i]._legmarker.set_markersize(6)
+                            lgnd.legendHandles[lgnd_i]._legmarker.set_color('tab:grey')
                     # Update list
                     global new_points
                     new_points.append(event.xdata)
@@ -206,7 +217,11 @@ def curing_evol1D(self,points=None,REF=None,files=None,
                     # Update legend box
                     handles, labels = plt.gca().get_legend_handles_labels()
                     by_label = dict(zip(labels, handles))
-                    plt.legend(by_label.values(), by_label.keys())
+                    lgnd = plt.legend(by_label.values(), by_label.keys())
+                    if t_pos == 1:
+                        for lgnd_i in range(mk_idx):
+                            lgnd.legendHandles[lgnd_i]._legmarker.set_markersize(6)
+                            lgnd.legendHandles[lgnd_i]._legmarker.set_color('tab:grey')
                     # Delete list
                     new_points.clear()
                     # Draw
@@ -313,7 +328,11 @@ def curing_evol1D(self,points=None,REF=None,files=None,
                     # Update legend box
                     handles, labels = plt.gca().get_legend_handles_labels()
                     by_label = dict(zip(labels, handles))
-                    plt.legend(by_label.values(), by_label.keys())
+                    lgnd = plt.legend(by_label.values(), by_label.keys())
+                    if t_pos == 1:
+                        for lgnd_i in range(mk_idx):
+                            lgnd.legendHandles[lgnd_i]._legmarker.set_markersize(6)
+                            lgnd.legendHandles[lgnd_i]._legmarker.set_color('tab:grey')
 
                 elif key_status == 'released' and dragging == False:
                     key_status = ''
@@ -339,7 +358,12 @@ def curing_evol1D(self,points=None,REF=None,files=None,
 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
-        plt.legend(by_label.values(), by_label.keys())
+        lgnd = plt.legend(by_label.values(), by_label.keys())
+        if t_pos == 1:
+            for lgnd_i in range(mk_idx):
+                lgnd.legendHandles[lgnd_i]._legmarker.set_markersize(6)
+                lgnd.legendHandles[lgnd_i]._legmarker.set_color('tab:grey')
+
         plt.ylim(-2000,5000)
 
         plt.tight_layout()
@@ -383,7 +407,14 @@ def curing_evol1D(self,points=None,REF=None,files=None,
 
                 file_time = datetime.strptime(self.obrfiles[file].date,"%Y,%m,%d,%H:%M:%S") if t=='time' else float(self.obrfiles[file].name.split('_')[t_pos])
                 elapsed_time = file_time - REF_time; elapsed_time = elapsed_time.total_seconds() / 60 if t=='time' else elapsed_time
-                times.append(elapsed_time)
+                if t_pos == 0:
+                    times.append(elapsed_time)
+                elif t_pos == 1:
+                    replace_dict = {'Evo':'','.obr':'','other_copy':'','_copy':'','_':'\n'} #'.obr':f' {t}'
+                    elapsed_time = file
+                    for key,val in replace_dict.items():
+                        elapsed_time = elapsed_time.replace(key,val)
+                    times.append(elapsed_time)
 
             all_vals[point_label]     = vals
             all_times[point_label]    = times
@@ -399,6 +430,8 @@ def curing_evol1D(self,points=None,REF=None,files=None,
         else:
             colormap = cm.get_cmap('rainbow')
         i = 0
+
+
 
 
         plt.figure()
@@ -421,13 +454,21 @@ def curing_evol1D(self,points=None,REF=None,files=None,
                     mu.append(np.mean(data))
 
                 # Append a list
-                line = plt.plot(all_times[point_label],mu,markermap[i-1],label=f'Segment no{i}',color=c)
+                if t_pos == 0:
+                    line = plt.plot(all_times[point_label],mu,markermap[i-1],label=f'Segment no{i}',color=c)
+                elif t_pos == 1:
+                    line = plt.plot(all_times[point_label],mu,markermap[i-1],label=f'Segment no{i}',color=c)
 
         plt.grid()
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys())
-        plt.xlabel(colorIS.replace('\n',' '))
+        if t_pos == 0:
+            plt.xlabel(colorIS.replace('\n',' '))
+        elif t_pos == 1:
+            Upper_label = 'Evolution number'
+            Lower_label = colorIS.replace('\n',' ')
+            plt.xlabel(Upper_label+'\n'+Lower_label)
         plt.ylabel(ylabel,fontsize=15,labelpad=20).set_rotation(0) if val == 'ss' else plt.ylabel(ylabel,labelpad=5).set_rotation(0)
         #plt.xlim(0,40)
         #plt.ylim(-6e-5,0.99e-5)
@@ -700,7 +741,9 @@ def curing_evol1D(self,points=None,REF=None,files=None,
                 plt.grid()
                 plt.show()
 
-                print(' For interval between:',interval,'min')
+                units = 'min' if t=='time' else t
+
+                print(' For interval between:',interval,units)
                 print(' ',[d[1] for d in all_diffs.items()])
 
             else:
@@ -710,7 +753,7 @@ def curing_evol1D(self,points=None,REF=None,files=None,
                     data = mu_diff[point_label][idx]
                     all_diffs[point_label]  = data
 
-                print(' For time:',interval,'min')
+                print(' For time:',interval,units)
                 print(' ',[d[1] for d in all_diffs.items()])
 
 
