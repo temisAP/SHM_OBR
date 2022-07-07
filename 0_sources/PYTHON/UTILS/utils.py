@@ -16,7 +16,8 @@ def printProgressBar (iteration, total,prefix = 'Progress:', suffix = 'Complete'
     if float(percent) <= 100:
         print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
     else:
-        print('OVER-COMPLETED',end = '\n')
+        #print('OVER-COMPLETED',end = '\n')
+        pass
     # Print New Line on Complete
     if iteration == total:
         print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\n')

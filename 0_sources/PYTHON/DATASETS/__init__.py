@@ -160,3 +160,5 @@ class DATASETS(object):
     from .curados.evol1D import curing_evol1D
 
     from .analisis.birds.A0_birds import birds
+
+    from .analisis.Stokes_Mueller import Stokes_Mueller

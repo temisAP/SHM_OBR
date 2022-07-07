@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from UTILS.read_obr import multi_read_obr
 from SIGNAL.Spectral_Shift import global_spectral_shift
-
+from SIGNAL.Birefringence import global_birefringence
 
 def take_a_look(self,REF,files,limit1=0, limit2 = 20, delta = 300, window = 1000, val='ss',plot=True, common_origin=False):
 
@@ -41,6 +41,10 @@ def take_a_look(self,REF,files,limit1=0, limit2 = 20, delta = 300, window = 1000
             spectralshift = global_spectral_shift(r[0],Data[file][0],f,delta=delta,window=window)
             val_distribution = spectralshift
             ylabel = r'$-\frac{\Delta \nu}{\bar{\nu}}$'
+        elif val == 'brf':
+            brf = birefringence(Data[file],f,delta=delta,window=window)
+            val_distribution = brf
+            ylabel = r'$\theta$'
         elif val == 'temp':
             T,E = self.sensor(Data[file],r,f,delta=delta,window=window,display = False)
             val_distribution = T
