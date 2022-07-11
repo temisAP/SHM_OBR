@@ -162,3 +162,5 @@ class DATASETS(object):
     from .analisis.birds.A0_birds import birds
 
     from .analisis.Stokes_Mueller import Stokes_Mueller
+
+    from .analisis.Corrections import Corrections

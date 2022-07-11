@@ -112,18 +112,17 @@ def read_obr(file):
     z=t*((299792458e-9)/(GroupIndex*2))    #[m]     -> tiempo en nanosegundos, z en metros 299792458 es la velocidad de la luz en el vacio y en indice de grupo es el indice de refracci�n medio de la fibra
     f=np.arange(SF-FI*2*n,SF+FI,FI)        #[GHz]   -> f es un array que tiene un incremento lineal (incremento de frecuencia) desde la frecuencia de inicio hasta la última
 
-    ###
+    ### Calculations
 
     Pc=Preal+Pimag*1j     #Pc es la medida de la polarización p en complejos
     #Plog=log10(abs(Pc))  #Plog es la medida de la polarización p en escala logaritmica
     Sc=Sreal+Simag*1j     #Sc es la medida de la polarización s en complejos
     #Slog=log10(abs(Sc))  #Slog es la medida de la polarización s en escala logaritmica
-    Hc=Pc+Sc
+    Hc=Pc+Sc              # It doesn't make sense
     #Hc=((abs(Pc)).^2+(abs(Sc)).^2).^0.5           #Hc es la suma vectorial de P y S en complejos
     s=np.sum(np.absolute(Hc))
     Hc=Hc/s
     #Hlog=log10(abs(Hc))  #Hlog es la medida de la suma vectorial de P y S en escala logaritmica
-
 
     return f,z,Pc,Sc,Hc
 
