@@ -21,10 +21,10 @@ def stokes_vector(P,S):
 
     """ Stokes vector out of P and S polarization states
 
-            : param P (complex number array): p-polarization state
-            : param S (complex number array): s-polarization state
+            : param P (complex 1xn array): p-polarization state
+            : param S (complex 1xn array): s-polarization state
 
-            : return [I,Q,U,V] (nxm np.array): Stokes vector along z
+            : return [I,Q,U,V] (real 4xn np.array): Stokes vector along z
 
     """
 

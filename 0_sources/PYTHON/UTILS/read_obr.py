@@ -1,6 +1,7 @@
 import sys
 import os
 from .utils import find_index
+from .utils import stokes_vector
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,9 +16,9 @@ def read_obr(file):
         returns
             f       (np.array)  : Distribución espectral [GHz] (de SF a SF+FI*2*n en incrementos de FI)
             z       (np.array)  : Distribución espacial  [m]
-            Pc      (complex np.array)  : Medida de la polarización p
-            Sc      (complex np.array)  : Medida de la polarización s
-            Hc      (complex np.array)  : Suma de de la polarización p y s
+            Pc      (complex 1xn np.array)  : Medida de la polarización p
+            Sc      (complex 1xn np.array)  : Medida de la polarización s
+            St      (4xn np.array)          : Vector de Stokes
 
         * Along this file some information has been commented out for a faster reading
           please feel free of uncoment whenever you may need
@@ -114,17 +115,11 @@ def read_obr(file):
 
     ### Calculations
 
-    Pc=Preal+Pimag*1j     #Pc es la medida de la polarización p en complejos
-    #Plog=log10(abs(Pc))  #Plog es la medida de la polarización p en escala logaritmica
-    Sc=Sreal+Simag*1j     #Sc es la medida de la polarización s en complejos
-    #Slog=log10(abs(Sc))  #Slog es la medida de la polarización s en escala logaritmica
-    Hc=Pc+Sc              # It doesn't make sense
-    #Hc=((abs(Pc)).^2+(abs(Sc)).^2).^0.5           #Hc es la suma vectorial de P y S en complejos
-    s=np.sum(np.absolute(Hc))
-    Hc=Hc/s
-    #Hlog=log10(abs(Hc))  #Hlog es la medida de la suma vectorial de P y S en escala logaritmica
+    Pc = Preal+Pimag*1j     #Pc es la medida de la polarización p en complejos
+    Sc = Sreal+Simag*1j     #Sc es la medida de la polarización s en complejos
+    St = stokes_vector(P,S)
 
-    return f,z,Pc,Sc,Hc
+    return f,z,Pc,Sc,St
 
 def multi_read_obr(files,path_to_data='.',limit1 = 'none',limit2 = 'none',display=False):
     """ Function to read multiple obr files and crop it

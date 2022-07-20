@@ -16,7 +16,9 @@ def birds(self,sample_files):
 
 
     #Representation(sample_signals)
-    #Spectral_Shift(sample_signals)
+    Spectral_Shift(sample_signals,magnitude='S_0')
+
+    exit()
 
     if spectrograms:
 

@@ -15,7 +15,6 @@ def Representation(samples):
     data, ylabels = create_data_and_ylabels(sample_keys,states,components)
 
 
-
     for i, sample, sample_key in zip(range(len(samples.keys())), samples.values(), samples.keys()):
 
         Temperature = sample.temperature
