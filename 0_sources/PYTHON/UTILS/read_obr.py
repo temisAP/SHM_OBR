@@ -1,7 +1,9 @@
 import sys
 import os
 from .utils import find_index
-from .utils import stokes_vector
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from SIGNAL.Stokes import stokes_vector
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -117,7 +119,7 @@ def read_obr(file):
 
     Pc = Preal+Pimag*1j     #Pc es la medida de la polarización p en complejos
     Sc = Sreal+Simag*1j     #Sc es la medida de la polarización s en complejos
-    St = stokes_vector(P,S)
+    St = stokes_vector(Pc,Sc)
 
     return f,z,Pc,Sc,St
 
@@ -147,14 +149,14 @@ def multi_read_obr(files,path_to_data='.',limit1 = 'none',limit2 = 'none',displa
         for idx,file in enumerate(files):
             print('Reading',file)
             if idx < max_plots:
-                f,z,Pc,Sc,Hc =read_obr(f'{path_to_data}/{file}.obr')
+                f,z,Pc,Sc,St =read_obr(f'{path_to_data}/{file}.obr')
                 plt.plot(z,np.log10(np.absolute(Hc)))
-                Data[file] = [Pc,Sc,Hc]
+                Data[file] = [Pc,Sc,St]
                 pending_files.append(file)
             elif idx == max_plots:
-                f,z,Pc,Sc,Hc =read_obr(f'{path_to_data}/{file}.obr')
+                f,z,Pc,Sc,St =read_obr(f'{path_to_data}/{file}.obr')
                 plt.plot(z,np.log10(np.absolute(Hc)))
-                Data[file] = [Pc,Sc,Hc]
+                Data[file] = [Pc,Sc,St]
                 pending_files.append(file)
                 plt.xlabel('z [m]')
                 plt.ylabel(r'$Log_{10}(H(t))$')
@@ -176,15 +178,21 @@ def multi_read_obr(files,path_to_data='.',limit1 = 'none',limit2 = 'none',displa
                 # Crop previous data
                 for file in pending_files:
                     for measure in range(len(Data[file])):
-                        Data[file][measure] = Data[file][measure][int(limit1):int(limit2)]
+                        if len(Data[file][measure].shape) == 1:
+                            Data[file][measure] = Data[file][measure][int(limit1):int(limit2)]
+                        elif len(Data[file][measure].shape) == 2:
+                            Data[file][measure] = Data[file][measure][:,int(limit1):int(limit2)]
                 f = f[int(limit1):int(limit2)]
                 z = z[int(limit1):int(limit2)]
 
             elif idx > max_plots:
-                f,z,Pc,Sc,Hc =read_obr(f'{path_to_data}/{file}.obr')
-                Data[file] = [Pc,Sc,Hc]
+                f,z,Pc,Sc,St =read_obr(f'{path_to_data}/{file}.obr')
+                Data[file] = [Pc,Sc,St]
                 for measure in range(len(Data[file])):
-                    Data[file][measure] = Data[file][measure][int(limit1):int(limit2)]
+                    if len(Data[file][measure].shape) == 1:
+                        Data[file][measure] = Data[file][measure][int(limit1):int(limit2)]
+                    elif len(Data[file][measure].shape) == 2:
+                        Data[file][measure] = Data[file][measure][:,int(limit1):int(limit2)]
                 f = f[int(limit1):int(limit2)]
                 z = z[int(limit1):int(limit2)]
             else:
@@ -206,14 +214,17 @@ def multi_read_obr(files,path_to_data='.',limit1 = 'none',limit2 = 'none',displa
 
         for idx,file in enumerate(files):
             print('Reading',file)
-            f,z,Pc,Sc,Hc =read_obr(f'{path_to_data}/{file}.obr')
-            Data[file] = [Pc,Sc,Hc]
+            f,z,Pc,Sc,St =read_obr(f'{path_to_data}/{file}.obr')
+            Data[file] = [Pc,Sc,St]
             if idx == 0:
                 limit1 = find_index(z,limit1)
                 limit2 = find_index(z,limit2)
 
             for measure in range(len(Data[file])):
-                Data[file][measure] = Data[file][measure][int(limit1):int(limit2)]
+                if len(Data[file][measure].shape) == 1:
+                    Data[file][measure] = Data[file][measure][int(limit1):int(limit2)]
+                elif len(Data[file][measure].shape) == 2:
+                    Data[file][measure] = Data[file][measure][:,int(limit1):int(limit2)]
 
         f = f[int(limit1):int(limit2)]
         z = z[int(limit1):int(limit2)]

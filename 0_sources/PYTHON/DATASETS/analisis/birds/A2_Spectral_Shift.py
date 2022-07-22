@@ -75,7 +75,6 @@ def Spectral_Shift(samples,magnitude='p-s',delta=200, window=1000):
                 elif magnitude == 'St':
                     ss = global_spectral_shift(ref_data[0],sample.Data[2],sample.f,delta=delta,window=window)*1e6
 
-
             z  = np.linspace(0,sample.z[-1]-sample.z[0],len(ss))
 
             data[sample_key][state]['Spectral shift'] = [z,ss]

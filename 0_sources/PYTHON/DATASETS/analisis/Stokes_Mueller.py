@@ -12,34 +12,28 @@ from UTILS.read_obr import multi_read_obr
 from SIGNAL.Spectral_Shift import global_spectral_shift
 from SIGNAL.Birefringence import global_birefringence
 
-def stokes_vector(P,S):
+def Stokes_vector(P,S):
 
     """ Stokes vector out of P and S polarization states
 
-            : param P (complex number array): p-polarization state
-            : param S (complex number array): s-polarization state
+            : param P (complex 1xn array): p-polarization state
+            : param S (complex 1xn array): s-polarization state
 
-            : return [I,Q,U,V] (nxm np.array): Stokes vector along z
+            : return [I,Q,U,V] (real 4xn np.array): Stokes vector along z
 
     """
 
-    n_points = len(P)
-
-    I = list()
-    Q = list()
-    U = list()
-    V = list()
-
-    for n in range(n_points):
-        I.append(np.abs(P[n])**2+np.abs(S[n])**2)
-        Q.append(np.abs(P[n])**2-np.abs(S[n])**2)
-        product = P[n]*np.conj(S[n])
-        U.append(2*product.real)
-        V.append(2*product.imag)
+    I = np.abs(P)**2+np.abs(S)**2
+    Q = np.abs(P)**2-np.abs(S)**2
+    product = P*np.conj(S)
+    U = 2*product.real
+    V = 2*product.imag
 
     return np.array([I,Q,U,V])
 
 def Mueller_matrix(S_in, S_out):
+
+    """ Mueller matrix out of in and out Stokes vectors """
 
 
     def M_lb(alpha,beta):
@@ -102,7 +96,7 @@ def Mueller_matrix(S_in, S_out):
 
     return M
 
-def mueller_evolution(S):
+def Mueller_evolution(S):
 
     S_prima = np.zeros_like(S)
     S_prima[:,0] = S[:,0]
@@ -114,15 +108,47 @@ def mueller_evolution(S):
 
     return S_prima
 
+def Stokes_features(S):
+
+    """ Function to return Degrees of polarization and orientation angle from a
+        stokes vector
+
+        :param S (4xn np.array): stokes vector along the distance
+
+        :return [DoP, DoLP, DoCP, theta] (4xn np.array): stokes features along the distance
+
+            where
+
+                DoP  : Degree of Polarization
+                DoLP : Degree of Linear Polarization
+                DoCP : Degree of Circular Polarization
+                theta: Orientation angle
+
+    """
+
+    DoP  = (S[1,:]**2+S[2,:]**2+S[3,:]**2)**0.5/S[0,:]
+    DoLP = (S[1,:]**2+S[2,:]**2)**0.5/S[0,:]
+    DoCP = S[3,:]/S[0,:]
+    theta = np.arctan2(S[2,:],S[1,:])
+
+    return np.array([DoP, DoLP, DoCP, theta])
+
 def Stokes_Mueller(self, REF, files, limit1=0, limit2 = 20, delta = 200, window = 500, plot=True):
+
+
+    stokes_components   = True
+    stokes_features     = True
+    mueller_matrix      = False
+    brf_and_ss          = False
 
     # Take ref
     f,z,Data = multi_read_obr([REF],os.path.join(self.path,self.folders['0_OBR']),limit1=limit1,limit2=limit2)
-    refBRF   = global_birefringence(Data[REF],delta=delta,window=window)
+    refBRF   = global_birefringence(Data[REF],delta=delta,window=window) if brf_and_ss else None
     refData  = Data[REF]
 
     # Calculations
     stokes  = {'I':dict.fromkeys(files), 'Q':dict.fromkeys(files), 'U':dict.fromkeys(files), 'V':dict.fromkeys(files)}
+    features = {'DoP':dict.fromkeys(files), 'DoLP':dict.fromkeys(files), 'DoCP':dict.fromkeys(files), 'theta':dict.fromkeys(files)}
     mueller = {'I':dict.fromkeys(files), 'Q':dict.fromkeys(files), 'U':dict.fromkeys(files), 'V':dict.fromkeys(files)}
 
     spectralshifts = dict.fromkeys(files)
@@ -131,24 +157,30 @@ def Stokes_Mueller(self, REF, files, limit1=0, limit2 = 20, delta = 200, window 
     for i,file in enumerate(files):
         f,z,Data = multi_read_obr([file],os.path.join(self.path,self.folders['0_OBR']),limit1=limit1,limit2=limit2)
 
-        S = stokes_vector(Data[file][0],Data[file][1])
-        from scipy.signal import savgol_filter
-        #S = savgol_filter(S,1000,1)
-        #S_prima = mueller_evolution(S)
+        S = Data[file][2]
+        F = Stokes_features(S) if stokes_features else None
+        F_ref = Stokes_features(refData[2]) if stokes_features else None
+        S_prima = Mueller_evolution(S) if mueller_matrix else None
 
         for idx, key in enumerate(stokes.keys()):
-            stokes[key][file]  = S[idx]
-            #mueller[key][file] = S_prima[idx]
+            stokes[key][file]  = S[idx,:]
+            mueller[key][file] = S_prima[idx] if mueller_matrix else None
 
-        spectralshifts[file] = global_spectral_shift(refData[0],Data[file][0],f,delta=delta,window=window)
-        birefringences[file] = global_birefringence(Data[file],delta=delta,window=window) - refBRF
+        if stokes_features:
+            for idx, key in enumerate(features.keys()):
+                from scipy.signal import savgol_filter
+                #F[idx,:] = savgol_filter(F[idx,:],1000,1)
+                features[key][file] = F[idx,:] # - F_ref[idx,:]
+                #features[key][file] = global_spectral_shift(F_ref[idx,:],F[idx,:],f,delta=200,window=1000, fft = False)
+
+
+        spectralshifts[file] = global_spectral_shift(refData[0],Data[file][0],f,delta=delta,window=window) if brf_and_ss else None
+        birefringences[file] = global_birefringence(Data[file],delta=delta,window=window) - refBRF if brf_and_ss else None
 
 
     """ Stokes components plot """
 
-    if False:
-
-        """ Stokes vector components """
+    if plot and stokes_components:
 
         fig, ax = plt.subplots(2,2, figsize = (10, 16))
 
@@ -176,11 +208,40 @@ def Stokes_Mueller(self, REF, files, limit1=0, limit2 = 20, delta = 200, window 
 
         plt.show()
 
+    """ Stokes features plot """
+
+    if plot and stokes_features:
+
+        fig, ax = plt.subplots(2,2, figsize = (10, 16))
+
+        for i, component in enumerate(features.keys()):
+                for file in files:
+                    z_features = np.linspace(z[0],z[-1],len(features[component][file]))
+                    ax[i//2,i%2].plot(z_features,features[component][file],label=file)
+                ax[i//2,i%2].grid()
+                ax[i//2,i%2].set_ylabel(component).set_rotation(0)
+                ax[i//2,i%2].set_xlabel('z [m]')
+
+
+        # Make all y and x axis equal to conserve reference
+        for i in range(2):
+            for j in range(2):
+                ax[0,0].get_shared_x_axes().join(ax[0,0], ax[i,j])
+                ax[0,0].get_shared_y_axes().join(ax[0,0], ax[i,j])
+
+        y_limits = [a.get_ylim() for a in  fig.axes[:-1]] ; y_limits = [item for tuple in y_limits for item in tuple]
+        plt.setp(ax, ylim=(min(y_limits) , max(y_limits)))
+
+        # Put a general legend at the bottom of the figure
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.figlegend(by_label.values(), by_label.keys(),loc='lower center',ncol=len(files),fancybox=False, shadow=False)
+
+        plt.show()
+
     """ General lossy linear retarder mueller matrix """
 
-    if False:
-
-        """ Stokes vector components """
+    if plot and mueller_matrix:
 
         for file in files:
 
@@ -211,12 +272,9 @@ def Stokes_Mueller(self, REF, files, limit1=0, limit2 = 20, delta = 200, window 
 
             plt.show()
 
-
     """ Birefringence and spectralshift """
 
-    if plot:
-
-        """ """
+    if plot and brf_and_ss:
 
         fig, ax = plt.subplots(1,1, figsize = (10, 16))
         ax2 = ax.twinx()

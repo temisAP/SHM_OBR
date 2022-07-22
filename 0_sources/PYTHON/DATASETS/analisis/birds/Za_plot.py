@@ -34,7 +34,7 @@ def a_plot(data,ylabels,
         print('>2D not supported')
         return
 
-    fig, ax = plt.subplots(len(samples),len(states), figsize = (10, 16))
+    fig, ax = plt.subplots(len(samples),len(states), figsize = (10, 16),squeeze=False)
 
     for i, sample in enumerate(samples):
 

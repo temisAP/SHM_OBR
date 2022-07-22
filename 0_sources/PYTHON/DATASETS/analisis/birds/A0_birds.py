@@ -16,7 +16,9 @@ def birds(self,sample_files):
 
 
     #Representation(sample_signals)
-    Spectral_Shift(sample_signals,magnitude='S_0')
+    #Spectral_Shift(sample_signals,magnitude='p-s')
+    #Spectral_Shift(sample_signals,magnitude='S_0')
+    Spectral_Shift(sample_signals,magnitude='St')
 
     exit()
 

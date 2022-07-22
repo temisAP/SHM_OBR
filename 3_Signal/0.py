@@ -15,6 +15,12 @@ CM2_obj = DATASETS(path_to_folder)
 sample_files = ['0_mm_20_grados.obr','0_mm_30_grados.obr','0_mm_40_grados.obr',
                 '12.447_mm_30_grados.obr','6.223_mm_20_grados.obr','12.447_mm_20_grados.obr']
 
+#CM2_obj.obrfiles = dict()
+#CM2_obj.obr()
+#CM2_obj.computeOBR()
+#CM2_obj.save()
+#exit()
+
 CM2_obj.birds(sample_files)
 
 #CM2_obj.obr()

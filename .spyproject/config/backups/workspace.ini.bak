@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['7_Ensayos/concrete_beam.py', '7_Ensayos/dacomat.py', '0_sources/PYTHON/DATASETS/curados/evol1D.py']
+recent_files = ['3_Signal/0.py', '0_sources/PYTHON/DATASETS/analisis/birds/A2_Spectral_Shift.py']
 
 [main]
 version = 0.2.0

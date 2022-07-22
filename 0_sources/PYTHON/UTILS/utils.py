@@ -208,32 +208,3 @@ def check_memory(percentage=90,timeout = 60):
         time.sleep(1)
         if float(time.time())-zero_time > timeout:
             exit()
-
-def stokes_vector(P,S):
-
-    """ Stokes vector out of P and S polarization states
-
-            : param P (complex 1xn array): p-polarization state
-            : param S (complex 1xn array): s-polarization state
-
-            : return [I,Q,U,V] (real 4xn np.array): Stokes vector along z
-
-    """
-
-    import numpy as np
-
-    n_points = len(P)
-
-    I = list()
-    Q = list()
-    U = list()
-    V = list()
-
-    for n in range(n_points):
-        I.append(np.abs(P[n])**2+np.abs(S[n])**2)
-        Q.append(np.abs(P[n])**2-np.abs(S[n])**2)
-        product = P[n]*np.conj(S[n])
-        U.append(2*product.real)
-        V.append(2*product.imag)
-
-    return np.array([I,Q,U,V])
